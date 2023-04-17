@@ -6,6 +6,7 @@ from rest_framework import viewsets, views
 from rest_framework import permissions
 from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer
 from rest_framework import generics
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
 from user.forms import CustomUserCreationForm
@@ -90,7 +91,32 @@ class AuthenticatedProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
-    
+
+class UpdateProfileView(generics.GenericAPIView):
+    profile_serializer_class = ProfileSerializer
+    user_serializer_class = UserSerializer
+    profile_queryset = Profile.objects.all()
+    user_queryset = User.objects.all()
+
+    # Add this method for PATCH requests
+    def patch(self, request:Request, *args, **kwargs):
+        print(f'{request.data}')
+        profile_instance = self.get_object_from_queryset(self.profile_queryset, kwargs['profile_pk'])
+        user_pk = profile_instance.user.pk
+        user_instance = self.get_object_from_queryset(self.user_queryset, user_pk)
+
+        profile_serializer = self.profile_serializer_class(profile_instance, data=request.data.get('profile'), partial=True, context={'request': request})
+        user_serializer = self.user_serializer_class(user_instance, data=request.data.get('user'), partial=True, context={'request': request})
+
+        if profile_serializer.is_valid() and user_serializer.is_valid():
+            profile_serializer.save()
+            user_serializer.save()
+            return Response({'profile': profile_serializer.data, 'user': user_serializer.data})
+        else:
+            return Response({'errors': {'profile': profile_serializer.errors, 'user': user_serializer.errors}}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_object_from_queryset(self, queryset, pk):
+        return generics.get_object_or_404(queryset, pk=pk)
 
 class TripViewSet(viewsets.ModelViewSet):
     """

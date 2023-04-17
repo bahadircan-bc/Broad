@@ -6,7 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import MapView, { Marker } from 'react-native-maps'
 
 
-import { formatDate } from '../../../../../util/utils';
+import { api_endpoint, formatDate } from '../../../../../util/utils';
 
 const PassengerCard = (props) => {
   return (
@@ -31,31 +31,41 @@ export default function TripDetailsPage({navigation, route}) {
   const expandButtonOpacity = useRef(new Animated.Value(0)).current;
 
   const fetchItems = async function (){
+    let response = await fetch(`${api_endpoint}${route.params.flatlistIdentifier}/${route.params.pk}/`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+    .then(response => {if(response.status == 200) return response.json(); else throw new Error(`HTTP status ${response.status}`);})
+    console.log(response)
     setTripDetails({
-      pk:'1',
-      username: 'test',
+      username: response.driver.profile_name,
       imageURL: 'https://placeimg.com/640/480/any',
-      tripNote: 'testTripNote',
-      date: 'yyyy-mm-dd',
-      fee: 123456,
-      emptySeats: 3,
-      maxSeats: 4,
-      carModel: 'BMW',
+      tripNote: response.note,
+      date: response.departure_date,
+      time: response.departure_time.substring(0,5),
+      fee: response.fee,
+      emptySeats: response.max_seats - response.empty_seats,
+      maxSeats: response.max_seats,
+      carModel: response.car_model,
     });
     
     var newStarsList = [];
-    for (var i = 0; i < 3; i++){
+    for (var i = 0; i < parseInt(response.driver.average_rating); i++){
       newStarsList.push(<FontAwesome key={i} name='star' size={20} color={'gold'} style={{margin:2}}/>);
     }
-    for (var i = 3; i < 5; i++){
+    for (var i = parseInt(response.driver.average_rating ?? 0); i < 5; i++){
       newStarsList.push(<FontAwesome key={i} name='star' size={20} color={'#d9d9d9'} style={{margin:2}}/>);
     }
     setStarsList(newStarsList);
 
-    setPassengerCardList([
-      <PassengerCard key={1} username={'passenger1'} imageURL={'https://placeimg.com/640/480/any'}/>,
-      <PassengerCard key={2} username={'passenger2'} imageURL={'https://placeimg.com/640/480/any'}/>
-    ])
+    let passengerList = [];
+    response.passengers.forEach((passenger, index) => {
+      passengerList.push(<PassengerCard key={index} username={passenger.profile_name} imageURL={'https://placeimg.com/640/480/any'}/>)
+  });
+
+    setPassengerCardList(passengerList)
   }
 
   useEffect(()=>{
@@ -95,7 +105,7 @@ export default function TripDetailsPage({navigation, route}) {
                 </View>
                 <View style={styles.statsElementContainer}>
                   <FontAwesome size={20} color={colors.deepblue} name='clock-o'/>
-                  <Text>Saat</Text>
+                  <Text>{tripDetails.time}</Text>
                 </View>
                 <View style={styles.statsElementContainer}>
                   <FontAwesome size={20} color={colors.deepblue} name='try'/>

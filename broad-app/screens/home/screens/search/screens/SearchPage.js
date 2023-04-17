@@ -10,7 +10,7 @@ const SearchItem = function({pk, name, departure, destination, departureDate, fe
   return (
     <TouchableOpacity 
       style={styles.flatlistItem}
-      onPress={()=>navigation.navigate('SearchItem', {pk:pk, name:name, departure:departure, destination:destination, departureDate:departureDate, fee:fee})}>
+      onPress={()=>navigation.navigate({name: 'SearchItem', params:{pk:pk, name:name, departure:departure, destination:destination, departureDate:departureDate, fee:fee}})}>
       <FontAwesome name='car' color={colors.deepblue} size={20}/>
       <View style={{flexDirection: 'column', flexGrow:1, padding:10}}>
         <Text style={styles.itemUsernameText}>{name}</Text>
@@ -33,7 +33,7 @@ export default function SearchPage({navigation}) {
     },
     })
     .then((response) => { if(response.status == 200) return response.json(); else throw new Error('HTTP status ' + response.status);});
-    console.log(response);
+    console.log(response.results);
     setTripList(response.results);
   }
   
@@ -48,7 +48,7 @@ export default function SearchPage({navigation}) {
 
   const renderItem = function({ item }) {
     return (
-      <SearchItem name={item.driver} departure={item.departure} destination={item.destination} departureDate={item.departure_date} fee={item.fee}/>
+      <SearchItem pk={item.pk} name={item.driver.profile_name} departure={item.departure} destination={item.destination} departureDate={item.departure_date} fee={item.fee}/>
   )};
 
   return (

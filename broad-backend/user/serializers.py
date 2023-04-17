@@ -31,6 +31,7 @@ class ReviewSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['pk', 'author', 'receiver', 'content', 'rating', 'date']
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+    email = serializers.StringRelatedField(source='user.email')
     trips_as_driver = serializers.HyperlinkedRelatedField(
         view_name='trips-detail',
         many=True,
@@ -49,12 +50,12 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['user', 'profile_name', 'name', 'surname', 'profile_picture', 'trips_as_driver', 'trips_as_passenger', 'followers', 'following', 'reviews', 'written_reviews', 'average_rating']
+        fields = ['pk', 'user', 'email', 'profile_name', 'name', 'surname', 'profile_picture', 'trips_as_driver', 'trips_as_passenger', 'followers', 'following', 'reviews', 'written_reviews', 'average_rating']
 
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
     passengers = ProfileSerializer(required=False, many=True)
-    driver = serializers.StringRelatedField(source='driver.profile_name')
+    driver = ProfileSerializer()
 
     class Meta:
         model = Trip

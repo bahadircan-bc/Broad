@@ -2,48 +2,42 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, Pressabl
 import React, { useEffect, useRef, useState } from 'react'
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
+import { api_endpoint, csrftoken } from '../../../../../util/utils';
 
 export default function EditProfilePage({navigation, route}) {
+  const [pk, setPk] = useState();
   const [username, setUsername] = useState('');
-  const [followers, setFollowers] = useState(0);
-  const [tripCount, setTripCount] = useState(0);
-  const [likes, setLikes] = useState(0);
-  const [rating, setRating] = useState(0);
   const [profilePicture, setProfilePicture] = useState();
-  const [reviewList, setReviewList] = useState([]);
+  const [name, setName] = useState();
+  const [surname, setSurname] = useState();
+  const [email, setEmail] = useState();
   const [editingName, setEditingName] = useState(false);
   const textInputRef = useRef();
 
-  const fetchItems = async function(){}
+  const fetchItems = async function(){
+    let response = await fetch(`${api_endpoint}whoami/`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+    .then(response => {if(response.status == 200) return response.json(); else throw new Error(`HTTP status: ${response.status}`);})
+    console.log(`response is : ${JSON.stringify(response)}`);
+    const results = response.results[0];
+    setPk(results.pk);
+    setUsername(results.profile_name);
+    setName(results.name);
+    setSurname(results.surname);
+    setEmail(results.email);
+    setProfilePicture('profile');
+  }
 
   useEffect(()=>{
     try {
-      setFollowers('followers');
-      setUsername('username');
-      setTripCount('tripCount');
-      setLikes('likesCount');
-      setRating('likesRating');
-      setProfilePicture('profile');
       fetchItems()
     } catch (error) {
       console.log(error)
     }
-    //instance.get('/user/get_profile/').then((response)=>{
-    //  if(response.status == 200){
-    //    setFollowers(response.data['followers']);
-    //    setUsername(response.data['username']);
-    //    setTripCount(response.data['tripCount']);
-    //    setLikes(response.data['likesCount']);
-    //    setRating(response.data['likesRating']);
-    //    setProfilePicture(response.data['profile']);
-    //  }
-    //  var newReviewList = [];
-    //  for (var k in response.data.reviews){
-    //    const review = response.data.reviews[k];
-    //    newReviewList.push(<ReviewElement key={k} name={review.author} image={{uri:`${ENDPOINT}/media/${review.profilePicture}`}} comment={review.content}/>);
-    //  }
-    //  setReviewList(newReviewList);
-    //})
   }, [])
 
   useEffect(()=>
@@ -52,6 +46,36 @@ export default function EditProfilePage({navigation, route}) {
       textInputRef.current.focus()
     }
   }, [editingName])
+
+  const onSaveChanges = async function() {
+    console.log(JSON.stringify({
+      'profile': {
+        'name': name,
+        'surname': surname
+      },
+      'username': {
+        'email': email
+      }
+    }))
+    let response = await fetch(`${api_endpoint}profiles/update/${pk}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify({
+        'profile': {
+          'surname': surname
+        },
+        'username': {
+          'email': email
+        }
+      })
+    })
+    .then(response => {if(response.status==200) return response.json(); else throw new Error(`HTTP status ${response.status}`);});
+    console.log(response);
+  }
   
   return (
     <View style={styles.backgroundContainer}>
@@ -60,28 +84,28 @@ export default function EditProfilePage({navigation, route}) {
           <View style={styles.pageHeaderContainer}>
             <View style={{justifyContent:'center'}}>
               <Image source={{uri:'https://placeimg.com/640/480/any'}} style={styles.profileImage}/>
-              <FontAwesome name='edit' size={50} color={'rgba(255, 0, 255, 0.5)'} style={{position:'absolute', marginLeft:18}}/>
+              <FontAwesome name='edit' size={50} color={'rgba(255, 255, 255, 0.5)'} style={{position:'absolute', marginLeft:18}}/>
             </View>
             <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
-              <TextInput ref={textInputRef} style={styles.headerText} editable={editingName} onSubmitEditing={()=>{setEditingName(false);}} onBlur={()=>{setEditingName(false)}}>{username}</TextInput> 
+              <TextInput ref={textInputRef} style={styles.headerText} editable={editingName} onChangeText={text => setUsername} onSubmitEditing={()=>{setEditingName(false);}} onBlur={()=>{setEditingName(false)}}>{username}</TextInput> 
               <FontAwesome name='edit' size={25} onPress={()=>{setEditingName(true);}}/>
             </View>
           </View>
           <View style={{flex:8, width:'100%', backgroundColor: colors.blue, padding:50, gap:30}}>
             <View style={styles.formContainer}>
               <Text style={styles.formText}>Isim:</Text>
-              <TextInput style={styles.formInput}></TextInput>
+              <TextInput style={styles.formInput} placeholder={name}></TextInput>
             </View>
             <View style={styles.formContainer}>
               <Text style={styles.formText}>Soyisim:</Text>
-              <TextInput style={styles.formInput}></TextInput>
+              <TextInput style={styles.formInput} placeholder={surname}></TextInput>
             </View>
             <View style={styles.formContainer}>
               <Text style={styles.formText}>E-posta:</Text>
-              <TextInput style={styles.formInput}></TextInput>
+              <TextInput style={styles.formInput} placeholder={email}></TextInput>
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={() => {navigation.navigate('Profile')}}><Text>Onayla</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={() => {onSaveChanges(); navigation.navigate('Profile')}}><Text>Onayla</Text></TouchableOpacity>
               <TouchableOpacity style={styles.button} onPress={() => {navigation.navigate('Profile')}}><Text>Vazgeç</Text></TouchableOpacity>
             </View>
           </View>

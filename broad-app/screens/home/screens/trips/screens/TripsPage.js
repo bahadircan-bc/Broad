@@ -6,7 +6,7 @@ import { Divider } from 'react-native-paper'
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { api_endpoint, csrftoken } from '../../../../../util/utils';
 
-const TripsItem = function({pk, name, ownTrip, departure, destination, onGoing}){
+const TripsItem = function({flatlistIdentifier, pk, name, ownTrip, departure, destination, onGoing}){
   const navigation = useNavigation();
   const activeTextOpacity = useRef(new Animated.Value(0)).current
 
@@ -23,11 +23,11 @@ const TripsItem = function({pk, name, ownTrip, departure, destination, onGoing})
   return(
     <TouchableOpacity 
       style={styles.flatlistItem}
-      onPress={() => {navigation.navigate('TripDetails', {pk:pk, name:name, ownTrip:ownTrip, departure:departure, destination:destination, onGoing:onGoing})}}>
+      onPress={() => {navigation.navigate('TripDetails', {flatlistIdentifier:flatlistIdentifier, pk:pk, name:name, ownTrip:ownTrip, departure:departure, destination:destination, onGoing:onGoing})}}>
       <FontAwesome name='road' color={colors.blue} size={16} style={{margin:8}}/>
       <Text style={{fontSize:16}}>{departure} - {destination}</Text>
       {onGoing && <Animated.View style={{borderRadius:5, padding:5, position:'absolute', right:10, backgroundColor:colors.green, opacity:activeTextOpacity}}>
-        <Text style={{color:colors.white}}>AKTIF</Text>
+        <Text style={{color:colors.white}}>BAŞLADI</Text>
       </Animated.View>}
     </TouchableOpacity>
   )
@@ -78,9 +78,9 @@ export default function TripsPage({navigation}) {
     }
   }, [])
 
-  const renderItem = function({item}){
+  const renderItem = (flatlistIdentifier) => function({item}){
     return (
-      <TripsItem pk={item.pk} ownTrip={item.ownTrip} name={item.name} departure={item.departure} destination={item.destination} onGoing={item.on_going}/>
+      <TripsItem flatlistIdentifier={flatlistIdentifier} pk={item.pk} ownTrip={item.ownTrip} name={item.name} departure={item.departure} destination={item.destination} onGoing={item.on_going}/>
     )
   }
 
@@ -98,7 +98,7 @@ export default function TripsPage({navigation}) {
             <FlatList 
             style={{flex:1}}
             data={activeTripList}
-            renderItem={renderItem}/>
+            renderItem={renderItem('active_trips')}/>
             : 
             <Text>Henüz aktif yolculuğun bulunmuyor!</Text>
             }
@@ -114,7 +114,7 @@ export default function TripsPage({navigation}) {
             <FlatList
             style={{flex:1}}
             data={registeredTripList}
-            renderItem={renderItem}/>
+            renderItem={renderItem('registered_trips')}/>
             : 
             <Text>Kayıtlı olduğun yolculuklar burada görünecek!</Text>
             }
@@ -130,7 +130,7 @@ export default function TripsPage({navigation}) {
             <FlatList
             style={{flex:1}}
             data={terminatedTripList}
-            renderItem={renderItem}/>
+            renderItem={renderItem('past_trips')}/>
             : 
             <Text>Yolculukların tamamlandığında burada görebileceksin!</Text>
             }

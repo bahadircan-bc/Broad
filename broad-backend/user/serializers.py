@@ -61,3 +61,25 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
         model = Trip
         fields = ['pk', 'driver', 'passengers', 'departure', 'destination', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated']
 
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError("Old password is incorrect.")
+
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match.")
+
+        # Add any additional password policy validations based on learn.microsoft.com.
+        # For example, you can enforce minimum password length, complexity, etc.
+
+        return data
+
+    def save(self, user):
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user

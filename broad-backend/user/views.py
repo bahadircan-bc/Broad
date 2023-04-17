@@ -4,7 +4,7 @@ from user.models import Profile, Trip, Review
 from django.db.models import Q, Avg
 from rest_framework import viewsets, views
 from rest_framework import permissions
-from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer
+from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -117,6 +117,19 @@ class UpdateProfileView(generics.GenericAPIView):
 
     def get_object_from_queryset(self, queryset, pk):
         return generics.get_object_or_404(queryset, pk=pk)
+    
+class ChangePasswordView(generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TripViewSet(viewsets.ModelViewSet):
     """

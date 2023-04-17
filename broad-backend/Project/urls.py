@@ -38,6 +38,7 @@ urlpatterns = [
     path('logout/', views.LogOutView.as_view()),
     path('users/create/', views.CreateUserView.as_view(),  name='create_user'),
     path('profiles/update/<int:profile_pk>', views.UpdateProfileView.as_view(), name='update_profile'),
+    path('change_password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('trips/create/', views.CreateTripView.as_view(), name='create_trip'),
     path('trips/update/<int:pk>', views.UpdateTripView.as_view(),  name='update_trip'),
     path('trips/delete/<int:pk>', views.DeleteTripView.as_view(),  name='delete_trip'),

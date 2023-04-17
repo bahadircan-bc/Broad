@@ -3,15 +3,41 @@ import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { TextInput } from 'react-native-gesture-handler'
 import { Divider } from 'react-native-paper'
+import { api_endpoint, csrftoken, renewCSRFToken } from '../../../../../util/utils'
 
-const onPasswordChange = async function (){
+/* 
+body: {
+  old_password: '',
+  new_password: '',
+  confirm_password: ''
+} 
+*/
 
-}
+
 
 export default function EditPasswordPage({navigation}) {
   const [oldPassword, setOldPassword] = useState();
   const [newPassword, setNewPassword] = useState();
   const [newPassword2, setNewPassword2] = useState();
+
+  const onPasswordChange = async function (){
+    await renewCSRFToken();
+    await fetch(`${api_endpoint}change_password/`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify({
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: newPassword2
+      })
+    })
+    .then(response => {if(response.status==200) return response.json(); else throw new Error(`HTTP status ${response.status}`);});
+  }
+
+
   return (
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>

@@ -100,7 +100,7 @@ class UpdateProfileView(generics.GenericAPIView):
 
     # Add this method for PATCH requests
     def patch(self, request:Request, *args, **kwargs):
-        print(f'{request.data}')
+        print(f'{request.parser_context}')
         profile_instance = self.get_object_from_queryset(self.profile_queryset, kwargs['profile_pk'])
         user_pk = profile_instance.user.pk
         user_instance = self.get_object_from_queryset(self.user_queryset, user_pk)

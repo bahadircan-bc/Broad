@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { FlatList, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
 import { api_endpoint } from '../../../../../util/utils';
+import { useIsFocused } from '@react-navigation/native';
 
 
 const ReviewElement = ({name, imageURL, comment}) => {
@@ -24,6 +25,7 @@ export default function ProfilePage({navigation}) {
   const [rating, setRating] = useState(0);
   const [profilePicture, setProfilePicture] = useState();
   const [reviewList, setReviewList] = useState([])
+  const isFocused = useIsFocused()
 
   const fetchItems = async function(){
     let response = await fetch(`${api_endpoint}whoami/`, {
@@ -44,12 +46,13 @@ export default function ProfilePage({navigation}) {
   }
 
   useEffect(()=>{
+    if(!isFocused) return;
     try {
       fetchItems()
     } catch (error) {
       console.log(error)
     }
-  }, [])
+  }, [isFocused])
 
   const renderItem = function({item}){
     return (

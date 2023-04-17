@@ -1,10 +1,17 @@
 import { Keyboard, KeyboardAvoidingView, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { TextInput } from 'react-native-gesture-handler'
 import { Divider } from 'react-native-paper'
 
+const onPasswordChange = async function (){
+
+}
+
 export default function EditPasswordPage({navigation}) {
+  const [oldPassword, setOldPassword] = useState();
+  const [newPassword, setNewPassword] = useState();
+  const [newPassword2, setNewPassword2] = useState();
   return (
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>
@@ -13,18 +20,18 @@ export default function EditPasswordPage({navigation}) {
           <View style={styles.inputContainer}>
             <View style={styles.formContainer}> 
               <Text>Eski Şifre: </Text>
-              <TextInput style={styles.simpleTextInput}/>
+              <TextInput style={styles.simpleTextInput} onChangeText={setOldPassword} secureTextEntry={true}/>
             </View>
             <View style={styles.formContainer}> 
               <Text>Yeni Şifre: </Text>
-              <TextInput style={styles.simpleTextInput}/>
+              <TextInput style={styles.simpleTextInput} onChangeText={setNewPassword} secureTextEntry={true}/>
             </View>
             <View style={styles.formContainer}> 
               <Text>Yeni Şifre (tekrar): </Text>
-              <TextInput style={styles.simpleTextInput}/>
+              <TextInput style={styles.simpleTextInput} onChangeText={setNewPassword2} secureTextEntry={true}/>
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={navigation.goBack}><Text style={{color: colors.white}}>Onayla</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={onPasswordChange}><Text style={{color: colors.white}}>Onayla</Text></TouchableOpacity>
               <TouchableOpacity style={styles.button} onPress={navigation.popToTop}><Text style={{color: colors.white}}>Vazgeç</Text></TouchableOpacity>
             </View>
           </View>

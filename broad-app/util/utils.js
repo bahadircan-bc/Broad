@@ -1,9 +1,16 @@
 import { CommonActions, StackActions } from "@react-navigation/native";
 
-export const api_endpoint = 'http://localhost:8000/'
+export const api_endpoint = 'http://127.0.0.1:8000/'
 export let csrftoken = ' '
 export function setCsrfToken(newToken) {
   csrftoken = newToken;
+}
+export async function renewCSRFToken(){
+  await fetch(`${api_endpoint}csrftoken/`)
+    .then(response => response.json())
+    .then(data => {
+      setCsrfToken(data.csrfToken);
+    })
 }
 
 export function validatePassword(password) {

@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, Pressabl
 import React, { useEffect, useRef, useState } from 'react'
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
-import { api_endpoint, csrftoken } from '../../../../../util/utils';
+import { api_endpoint, csrftoken, renewCSRFToken, setCsrfToken } from '../../../../../util/utils';
 
 export default function EditProfilePage({navigation, route}) {
   const [pk, setPk] = useState();
@@ -51,12 +51,13 @@ export default function EditProfilePage({navigation, route}) {
     console.log(JSON.stringify({
       'profile': {
         'name': name,
-        'surname': surname
+        'surname': surname,
+        'profile_name': username
       },
-      'username': {
+      'user': {
         'email': email
-      }
-    }))
+      }}))
+    await renewCSRFToken();
     let response = await fetch(`${api_endpoint}profiles/update/${pk}`, {
       method: 'PATCH',
       credentials: 'include',
@@ -66,15 +67,18 @@ export default function EditProfilePage({navigation, route}) {
       },
       body: JSON.stringify({
         'profile': {
-          'surname': surname
+          'name': name,
+          'surname': surname,
+          'profile_name': username
         },
-        'username': {
+        'user': {
           'email': email
         }
       })
     })
     .then(response => {if(response.status==200) return response.json(); else throw new Error(`HTTP status ${response.status}`);});
     console.log(response);
+    navigation.popToTop();
   }
   
   return (
@@ -87,26 +91,26 @@ export default function EditProfilePage({navigation, route}) {
               <FontAwesome name='edit' size={50} color={'rgba(255, 255, 255, 0.5)'} style={{position:'absolute', marginLeft:18}}/>
             </View>
             <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
-              <TextInput ref={textInputRef} style={styles.headerText} editable={editingName} onChangeText={text => setUsername} onSubmitEditing={()=>{setEditingName(false);}} onBlur={()=>{setEditingName(false)}}>{username}</TextInput> 
+              <TextInput ref={textInputRef} style={styles.headerText} editable={editingName} onChangeText={setUsername} onSubmitEditing={()=>{setEditingName(false);}} onBlur={()=>{setEditingName(false)}}>{username}</TextInput> 
               <FontAwesome name='edit' size={25} onPress={()=>{setEditingName(true);}}/>
             </View>
           </View>
           <View style={{flex:8, width:'100%', backgroundColor: colors.blue, padding:50, gap:30}}>
             <View style={styles.formContainer}>
               <Text style={styles.formText}>Isim:</Text>
-              <TextInput style={styles.formInput} placeholder={name}></TextInput>
+              <TextInput style={styles.formInput} onChangeText={setName} placeholder={name}></TextInput>
             </View>
             <View style={styles.formContainer}>
               <Text style={styles.formText}>Soyisim:</Text>
-              <TextInput style={styles.formInput} placeholder={surname}></TextInput>
+              <TextInput style={styles.formInput} onChangeText={setSurname} placeholder={surname}></TextInput>
             </View>
             <View style={styles.formContainer}>
               <Text style={styles.formText}>E-posta:</Text>
-              <TextInput style={styles.formInput} placeholder={email}></TextInput>
+              <TextInput style={styles.formInput} onChangeText={setEmail} placeholder={email}></TextInput>
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={() => {onSaveChanges(); navigation.navigate('Profile')}}><Text>Onayla</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={() => {navigation.navigate('Profile')}}><Text>Vazgeç</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={onSaveChanges}><Text>Onayla</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={navigation.popToTop}><Text>Vazgeç</Text></TouchableOpacity>
             </View>
           </View>
         </Pressable>

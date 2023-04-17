@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
+import { api_endpoint } from '../../../../../util/utils';
 
 const SearchItem = function({pk, name, departure, destination, departureDate, fee}) {
   const navigation = useNavigation();
@@ -24,51 +25,16 @@ const SearchItem = function({pk, name, departure, destination, departureDate, fe
 export default function SearchPage({navigation}) {
   const [tripList, setTripList] = useState();
   
-  const fetchItems = function() {
-
-    setTripList([
-      {
-        pk: '1',
-        name: 'First Item',
-        departure: 'test',
-        destination: 'test',
-        departureDate: 'dd/mm/yyyy',
-        fee: 12345,
-      },
-      {
-        pk: '2',
-        name: 'Second Item',
-        departure: 'test',
-        destination: 'test',
-        departureDate: 'dd/mm/yyyy',
-        fee: 12345,
-      },
-      {
-        pk: '3',
-        name: 'Third Item',
-        departure: 'test',
-        destination: 'test',
-        departureDate: 'dd/mm/yyyy',
-        fee: 12345,
-      },
-    ])
-    // TODO will fill the list dynamically using requests
-    //instance.post('/user/get_trips/', 
-    //{ data: 
-    //  { exclude: { myself: 1 } , filter: {emptySeats : 3, feeGT: 0, feeLT: 2000, departureDateStart: new Date(2022, 1, 1).toDateString(), departureDateEnd: new Date(2024, 1, 1).toDateString()}} }).then((response)=>{
-    //  if(response.status == 200){
-    //    const newTripList = [];
-    //    for(var k in response.data.tripList) {
-    //      const departure=response.data.tripList[k].path.split(',')[0];
-    //      const destination=response.data.tripList[k].path.split(',')[1];
-    //      const fee=response.data.tripList[k].fee;
-    //      const departureDate=response.data.tripList[k].date;
-    //      newTripList.push(<SearchItem key={k} pk={k} name={response.data.tripList[k].user} departure={departure} destination={destination} fee={fee} departureDate={departureDate}/>)
-    //    }
-    //    setTripList(newTripList);
-    //    //response.data.forEach((trip)=>{console.log(trip)})
-    //  }
-    //});
+  const fetchItems = async function() {
+    let response = await fetch(`${api_endpoint}trips/`, {
+      method: 'GET',
+      headers: { 
+        "Content-Type": "application/json",
+    },
+    })
+    .then((response) => { if(response.status == 200) return response.json(); else throw new Error('HTTP status ' + response.status);});
+    console.log(response);
+    setTripList(response.results);
   }
   
   useEffect(()=>{
@@ -82,7 +48,7 @@ export default function SearchPage({navigation}) {
 
   const renderItem = function({ item }) {
     return (
-      <SearchItem name={item.name} departure={item.departure} destination={item.destination} departureDate={item.departureDate} fee={item.fee}/>
+      <SearchItem name={item.driver} departure={item.departure} destination={item.destination} departureDate={item.departure_date} fee={item.fee}/>
   )};
 
   return (

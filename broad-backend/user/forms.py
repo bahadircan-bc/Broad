@@ -5,6 +5,8 @@ from django import forms
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
+    name = forms.CharField(max_length=50)
+    surname = forms.CharField(max_length=50)
 
     class Meta:
         model = User
@@ -15,6 +17,7 @@ class CustomUserCreationForm(UserCreationForm):
         user.email = self.cleaned_data['email']
         if commit:
             user.save()
-            Profile.create(user=user, profile_name=user.username)
+            profile = Profile.create(user=user, profile_name=user.username, name=self.cleaned_data['name'], surname=self.cleaned_data['surname'])
+            profile.save()
 
         return user

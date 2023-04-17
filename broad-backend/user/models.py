@@ -9,15 +9,24 @@ class Profile(models.Model):
     profile_name = models.CharField(max_length=50)
     profile_picture = models.ImageField(upload_to='profile_pics', blank=True)
     followers = models.ManyToManyField('self', related_name='following', symmetrical=False, blank=True)
+    name = models.CharField(max_length=50)
+    surname = models.CharField(max_length=50)
+    average_rating = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.user.username} Profile' #show how we want it to be displayed
     
     @classmethod
-    def create(cls, user, profile_name):
-        profile = cls(user=user, profile_name=profile_name)
+    def create(cls, user, profile_name, name, surname):
+        profile = cls(user=user, profile_name=profile_name, name=name, surname=surname)
         profile.save()
         return profile
+    
+    @property
+    def average_rating(self):
+        if hasattr(self, '_average_rating'):
+            return self._average_rating
+        return self.reviews.aggregate(models.Avg('rating'))['rating__avg']
 
 class Review(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name='written_reviews', null=True)
@@ -41,10 +50,11 @@ class Trip(models.Model):
     empty_seats = models.IntegerField()
     note = models.CharField(max_length=500)
     car_model = models.CharField(max_length=50)
+    on_going = models.BooleanField()
     terminated = models.BooleanField()
     date_published = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return f'{self.departure} -> {self.destination} : {self.departure_date}'
+        return f'{self.driver.user.username} : {self.departure} -> {self.destination} : {self.departure_date}'
 
 # Create your models here.

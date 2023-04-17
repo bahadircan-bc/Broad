@@ -23,8 +23,12 @@ router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 router.register(r'profiles', views.ProfileViewSet)
-router.register(r'trips', views.TripViewSet)
+router.register(r'trips', views.TripViewSet, basename='trips')
 router.register(r'reviews', views.ReviewViewSet)
+router.register(r'active_trips', views.ActiveTripViewSet, basename='active_trips')
+router.register(r'registered_trips', views.RegisteredTripViewSet, basename='registered_trips')
+router.register(r'past_trips', views.PastTripViewSet, basename='past_trips')
+router.register(r'whoami', views.AuthenticatedProfileViewSet, basename='whoami')
 
 urlpatterns = [
     path('csrftoken/', views.get_csrf_token),

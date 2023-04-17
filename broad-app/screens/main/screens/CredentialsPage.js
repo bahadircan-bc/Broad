@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Pressable, TextInput, Keyboard, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
 
-import { validateEmail } from '../../../util/utils';
+import { api_endpoint, csrftoken, validateEmail } from '../../../util/utils';
+import { ThemeProvider } from 'react-native-paper';
 
 export default function CredentialsPage({navigation, route}) {
     const [isCheckedKVKK, setCheckedKVKK] = useState(false);
@@ -51,16 +52,37 @@ export default function CredentialsPage({navigation, route}) {
           return true;
         }
         
-        const onSignUpRequest = async function(){
-            if(checkboxesAreChecked()){
-                setButtonDisabled(true);
-                await new Promise(function(resolve) {
-                    setTimeout(function() {resolve();}, 3000);
-                });
+    const onSignUpRequest = async function(){
+        let response = ' ';
+        if(checkboxesAreChecked()){
+            setButtonDisabled(true);
+            try {
+                response = await fetch(`${api_endpoint}users/create/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken, 
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password1: password,
+                        password2: password,
+                        email: email,
+                        name: name,
+                        surname: surname
+                        }),
+                })
+                .then(response => {if(response.status == 200) return response.json(); else throw new Error("HTTP status " + response.status);})
+            } catch (error) {
+                console.log(error);
                 setButtonDisabled(false);
-                console.log('sign up request simulated');
+                return;
             }
+            navigation.navigate({name: 'VerifyEmail', params: {username: username, password: password, verificationCode: response}})
+            setButtonDisabled(false);
+            console.log('sign up request simulated');
         }
+    }
 
     return (
         <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>

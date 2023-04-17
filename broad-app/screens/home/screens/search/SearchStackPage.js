@@ -27,7 +27,7 @@ export default function SearchStackPage({navigation}) {
       <SearchStack.Screen name='Map' component={MapPage}/>
       <SearchStack.Screen name='SearchItem' component={SearchItemPage} options={{
         headerShown:true, 
-        headerTitle:'Yolculuk Paylaş', 
+        headerTitle:'Yolculuk Detayları', 
         headerBackTitleVisible:false,
         headerStyle: {
           backgroundColor: '#2DBDFF',
@@ -38,7 +38,7 @@ export default function SearchStackPage({navigation}) {
         }}}/>
       <SearchStack.Screen name='Filter' component={FilterPage} options={{
         headerShown:true, 
-        headerTitle:'Yolculuk Paylaş', 
+        headerTitle:'Filtrele', 
         headerBackTitleVisible:false,
         headerStyle: {
           backgroundColor: '#2DBDFF',

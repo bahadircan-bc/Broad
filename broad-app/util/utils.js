@@ -1,6 +1,6 @@
 import { CommonActions, StackActions } from "@react-navigation/native";
 
-export const api_endpoint = 'https://143a-159-146-14-9.ngrok-free.app/'
+export const api_endpoint = 'http://localhost:8000/'
 export let csrftoken = ' '
 export function setCsrfToken(newToken) {
   csrftoken = newToken;

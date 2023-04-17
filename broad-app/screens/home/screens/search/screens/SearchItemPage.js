@@ -7,7 +7,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import MapView, { Marker } from 'react-native-maps'
 
 
-import { formatDate, clamp } from '../../../../../util/utils'
+import { formatDate, clamp, api_endpoint } from '../../../../../util/utils'
 
 const PassengerCard = (props) => {
   return (
@@ -18,7 +18,7 @@ const PassengerCard = (props) => {
   )
 }
 
-export default function SearchItemPage({navigation}) {
+export default function SearchItemPage({navigation, route}) {
   const [tripDetails, setTripDetails] = useState({});
   const [passengerCardList, setPassengerCardList] = useState([]);
   const [starsList, setStarsList] = useState([]);
@@ -27,6 +27,13 @@ export default function SearchItemPage({navigation}) {
   const [region, setRegion] = useState();
 
   const fetchItems = async function (){
+    let response = await fetch(`${api_endpoint}trips/${route.params.pk}`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+    .then(response => {if(response.status == 200) return response.json(); else throw new Error(`HTTP status ${response.status}`);})
     setTripDetails({
       pk:'1',
       username: 'test',

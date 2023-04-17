@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image } from 'r
 import React, { useEffect, useState } from 'react'
 import { FlatList, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
+import { api_endpoint } from '../../../../../util/utils';
 
 
 const ReviewElement = ({name, imageURL, comment}) => {
@@ -20,59 +21,39 @@ export default function ProfilePage({navigation}) {
   const [username, setUsername] = useState('');
   const [followers, setFollowers] = useState(0);
   const [tripCount, setTripCount] = useState(0);
-  const [likes, setLikes] = useState(0);
   const [rating, setRating] = useState(0);
   const [profilePicture, setProfilePicture] = useState();
   const [reviewList, setReviewList] = useState([])
 
   const fetchItems = async function(){
-    setReviewList([
-      {
-        name: 'test',
-        imageURL: 'https://placeimg.com/640/480/any',
-        comment: 'test comment',
-      },
-      {
-        name: 'test2',
-        imageURL: 'https://placeimg.com/640/480/any',
-        comment: 'test2 comment',
-      },
-    ])
+    let response = await fetch(`${api_endpoint}whoami/`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+    .then(response => {if(response.status == 200) return response.json(); else throw new Error(`HTTP status: ${response.status}`);})
+    console.log(`response is : ${JSON.stringify(response)}`);
+    const results = response.results[0];
+    setReviewList(results.reviews)
+    setFollowers(results.followers.length);
+    setUsername(results.profile_name);
+    setTripCount(results.trips_as_driver.length + results.trips_as_passenger.length);
+    setRating(parseInt(results.average_rating));
+    setProfilePicture('profile');
   }
 
   useEffect(()=>{
     try {
-      setFollowers('followers');
-      setUsername('username');
-      setTripCount('tripCount');
-      setLikes('likesCount');
-      setRating('likesRating');
-      setProfilePicture('profile');
       fetchItems()
     } catch (error) {
       console.log(error)
     }
-    //instance.get('/user/get_profile/').then((response)=>{
-    //  if(response.status == 200){
-    //    setFollowers(response.data['followers']);
-    //    setUsername(response.data['username']);
-    //    setTripCount(response.data['tripCount']);
-    //    setLikes(response.data['likesCount']);
-    //    setRating(response.data['likesRating']);
-    //    setProfilePicture(response.data['profile']);
-    //  }
-    //  var newReviewList = [];
-    //  for (var k in response.data.reviews){
-    //    const review = response.data.reviews[k];
-    //    newReviewList.push(<ReviewElement key={k} name={review.author} image={{uri:`${ENDPOINT}/media/${review.profilePicture}`}} comment={review.content}/>);
-    //  }
-    //  setReviewList(newReviewList);
-    //})
   }, [])
 
   const renderItem = function({item}){
     return (
-      <ReviewElement name={item.name} imageURL={item.imageURL} comment={item.comment}/>
+      <ReviewElement name={item.author} imageURL={item.imageURL} comment={item.content}/>
     )
   }
   
@@ -85,7 +66,7 @@ export default function ProfilePage({navigation}) {
             <Text style={styles.headerText}>{username}</Text>
             <View style={styles.pageHeaderStatsContainer}>
               <View style={{alignItems:'center'}}><Text style={styles.pageHeaderStatTitleText}>Takipçi</Text><Text style={styles.pageHeaderStatText}>{followers}</Text></View>
-              <View style={{alignItems:'center'}}><Text style={styles.pageHeaderStatTitleText}>Değerlendirme</Text><Text style={styles.pageHeaderStatText}>{likes>0 ? likesRating : '?'}/5</Text></View>
+              <View style={{alignItems:'center'}}><Text style={styles.pageHeaderStatTitleText}>Değerlendirme</Text><Text style={styles.pageHeaderStatText}>{rating>0 ? rating : '?'}/5</Text></View>
               <View style={{alignItems:'center'}}><Text style={styles.pageHeaderStatTitleText}>Yolculuklar</Text><Text style={styles.pageHeaderStatText}>{tripCount}</Text></View>
             </View>
             <View style={{position:'absolute', top:25, right:10}}>
@@ -128,9 +109,6 @@ const styles = StyleSheet.create({
     padding:10, 
     margin:10,
     marginBottom:0,
-    //marginLeft:15, 
-    //marginRight:15, 
-    //marginTop:15, 
     backgroundColor:colors.ligtherblue,
     borderRadius:15,
   },
@@ -168,9 +146,6 @@ const styles = StyleSheet.create({
       flexGrow:1,
       justifyContent:'space-around',
       alignItems:'center',
-      //marginBottom:71,
-      //added bottom margin for the bottom nav bar
-      //might change in the future
   },
   pageHeaderContainer:{
     flex:5,

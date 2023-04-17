@@ -4,6 +4,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { Divider } from 'react-native-paper'
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { api_endpoint, csrftoken } from '../../../../../util/utils';
 
 const TripsItem = function({pk, name, ownTrip, departure, destination, onGoing}){
   const navigation = useNavigation();
@@ -37,92 +38,35 @@ export default function TripsPage({navigation}) {
   const [terminatedTripList, setTerminatedTripList] = useState();
   const [registeredTripList, setRegisteredTripList] = useState();
 
-  const fetchItems = () => 
-  {
-    setActiveTripList([
-      {
-        pk: 1,
-        ownTrip: true,
-        name: 'test',
-        departure: 'test', 
-        destination: 'test',
-        onGoing: true,
-      },
-      {
-        pk: 2,
-        ownTrip: true,
-        name: 'test2',
-        departure: 'test2', 
-        destination: 'test2',
-        onGoing: false,
-      },
-    ]);
+  const fetchItems = async function(){ 
+    let response = await fetch(`${api_endpoint}active_trips/`, {
+      method: 'GET',
+      headers: { 
+        "Content-Type": "application/json",
+    },
+    })
+    .then((response) => { if(response.status == 200) return response.json(); else throw new Error('HTTP status ' + response.status);});
+    console.log(response);
+    setActiveTripList(response.results);
 
-    setTerminatedTripList([
-      {
-        pk: 1,
-        ownTrip: true,
-        name: 'test_terminated',
-        departure: 'test_terminated', 
-        destination: 'test_terminated',
-        onGoing: false,
-      },
-      {
-        pk: 2,
-        ownTrip: false,
-        name: 'test_terminated_2',
-        departure: 'test_terminated_2', 
-        destination: 'test_terminated_2',
-        onGoing: false,
-      },
-    ]);
-
-    setRegisteredTripList([
-      {
-        pk: 1,
-        ownTrip: false,
-        name: 'test_registered',
-        departure: 'test_registered', 
-        destination: 'test_registered',
-        onGoing: false,
-      },
-      {
-        pk: 2,
-        ownTrip: false,
-        name: 'test_registered_2',
-        departure: 'test_registered_2', 
-        destination: 'test_registered_2',
-        onGoing: false,
-      },
-    ])
-    //instance.post('/user/get_trips/', 
-    //{ data: 
-    //  { exclude: { myself: 0 } } }).then((response)=>{
-    //  if(response.status == 200){
-    //    const newActiveTripList = [];
-    //    const newRegisteredTripList = [];
-    //    const newTerminatedTripList = [];
-    //    for(var k in response.data.tripList) {
-    //      const departure=response.data.tripList[k].path.split(',')[0];
-    //      const destination=response.data.tripList[k].path.split(',')[1];
-    //      if (!response.data.tripList[k].terminated){
-    //        if (response.data.username === response.data.tripList[k].user) {
-    //          newActiveTripList.push(<TripsItem key={k} pk={k} ownTrip={true} name={response.data.tripList[k].user} departure={departure} destination={destination}/>)
-    //        }
-    //        else{
-    //          newRegisteredTripList.push(<TripsItem key={k} pk={k} ownTrip={false} name={response.data.tripList[k].user} departure={departure} destination={destination}/>)
-    //        }
-    //      }
-    //      else{
-    //        newTerminatedTripList.push(<TripsItem key={k} pk={k} ownTrip={response.data.username === response.data.tripList[k].user} name={response.data.tripList[k].user} departure={departure} destination={destination}/>)
-    //      }
-    //   }
-    //   setActiveTripList(newActiveTripList);
-    //   setTerminatedTripList(newTerminatedTripList);
-    //   setRegisteredTripList(newRegisteredTripList);
-    //    //response.data.forEach((trip)=>{console.log(trip)})
-    //  }
-    //});
+    response = await fetch(`${api_endpoint}registered_trips/`, {
+      method: 'GET',
+      headers: { 
+        "Content-Type": "application/json",
+    },
+    })
+    .then((response) => { if(response.status == 200) return response.json(); else throw new Error('HTTP status ' + response.status);});
+    console.log(response);
+    setRegisteredTripList(response.results);
+    response = await fetch(`${api_endpoint}past_trips/`, {
+      method: 'GET',
+      headers: { 
+        "Content-Type": "application/json",
+    },
+    })
+    .then((response) => { if(response.status == 200) return response.json(); else throw new Error('HTTP status ' + response.status);});
+    console.log(response);
+    setTerminatedTripList(response.results);
   }
 
   useEffect(()=>{
@@ -136,7 +80,7 @@ export default function TripsPage({navigation}) {
 
   const renderItem = function({item}){
     return (
-      <TripsItem pk={item.pk} ownTrip={item.ownTrip} name={item.name} departure={item.departure} destination={item.destination} onGoing={item.onGoing}/>
+      <TripsItem pk={item.pk} ownTrip={item.ownTrip} name={item.name} departure={item.departure} destination={item.destination} onGoing={item.on_going}/>
     )
   }
 

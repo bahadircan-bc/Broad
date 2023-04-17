@@ -132,3 +132,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
+
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST='smtp-mail.outlook.com'
+EMAIL_PORT='587'
+EMAIL_USE_TLS=True
+
+EMAIL_HOST_USER='bahadircan1997@windowslive.com'
+EMAIL_HOST_PASSWORD='2242347/226b'

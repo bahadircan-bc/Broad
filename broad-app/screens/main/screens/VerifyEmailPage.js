@@ -1,28 +1,70 @@
 import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Pressable, TextInput, Keyboard, ActivityIndicator } from 'react-native';
-
+import { api_endpoint, csrftoken } from '../../../util/utils';
 
 export default function VerifyEmailPage({navigation, route}){
-    const [username, setUsername] = useState();
-    const [password, setPassword] = useState();
-    const [verificationCode, setVerificationCode] = useState();
+    // const [username, setUsername] = useState();
+    // const [password, setPassword] = useState();
+    // const [verificationCode, setVerificationCode] = useState();
+    const username = route.params.username;
+    const password = route.params.password;
+    const verificationCode = route.params.verificationCode;
     const [inputCode, setInputCode] = useState('');
+    const [buttonDisabled, setButtonDisabled]= useState(false);
+
+    const onSignInEvent = async function(){
+      let response = ''
+      if (checkInputs()){
+        setButtonDisabled(true);
+        response = await fetch(`${api_endpoint}login/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken, 
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password,
+          }),
+        })
+      }
+      setButtonDisabled(false);
+      if(response.status == 200){
+        navigation.replace('Home');
+      }
+      else{
+        setShowLoginError(true);
+      }
+    }
 
     const onVerificationRequest = async function(){
-        if (verificationCode === inputCode){
-            setButtonDisabled(true);
-            await new Promise(function(resolve) {
-              setTimeout(function() {resolve();}, 3000);
-            });;
-            setButtonDisabled(false);
-            console.log('sign in request simulated');
-    }}
+      let response = ' ';
+      console.log(`${verificationCode}, ${inputCode}`)
+      if (verificationCode == inputCode){
+          setButtonDisabled(true);
+          response = await fetch(`${api_endpoint}login/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken, 
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: username,
+              password: password,
+            }),
+          })
+        }
+        setButtonDisabled(false);
+        if(response.status == 200){
+          navigation.replace('Home');
+      }
+    }
 
-    useEffect(function(){
-        setUsername(route.params.username);
-        setPassword(route.params.password);
-        setVerificationCode(route.params.verificationCode);
-    }, [route.params.verificationCode, route.params.username, route.params.password])
+    // useEffect(function(){
+    //     setUsername(route.params.username);
+    //     setPassword(route.params.password);
+    //     setVerificationCode(route.params.verificationCode);
+    // }, [])
 
     return (
       <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -37,10 +79,10 @@ export default function VerifyEmailPage({navigation, route}){
                     onChangeText={setInputCode}/>
                   <TouchableOpacity 
                     style={styles.simpleTouchableOpacity}
-                    onPress={()=>{}
-                      }>
-                    <Text 
-                      style={{textAlign:'center'}}>Doğrula</Text>
+                    onPress={onVerificationRequest}
+                    disabled={buttonDisabled}>
+                    {buttonDisabled ? <ActivityIndicator/> : <Text 
+                      style={{textAlign:'center'}}>Doğrula</Text>}
                   </TouchableOpacity>
                 </View>
             </View>

@@ -123,12 +123,18 @@ class ChangePasswordView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        print('5')
         return self.request.user
 
     def update(self, request, *args, **kwargs):
+        user = self.request.user
+        print('1')
         serializer = self.get_serializer(data=request.data)
+        print('2')
         serializer.is_valid(raise_exception=True)
+        print('3')
         self.perform_update(serializer)
+        print('4')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TripViewSet(viewsets.ModelViewSet):

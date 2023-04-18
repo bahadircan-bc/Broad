@@ -23,7 +23,7 @@ export default function EditPasswordPage({navigation}) {
   const onPasswordChange = async function (){
     await renewCSRFToken();
     await fetch(`${api_endpoint}change_password/`, {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrftoken,
@@ -36,7 +36,6 @@ export default function EditPasswordPage({navigation}) {
     })
     .then(response => {if(response.status==200) return response.json(); else throw new Error(`HTTP status ${response.status}`);});
   }
-
 
   return (
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>

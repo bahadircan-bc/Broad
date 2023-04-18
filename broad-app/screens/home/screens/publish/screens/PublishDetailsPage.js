@@ -1,14 +1,29 @@
-import { StyleSheet, Text, View, SafeAreaView, Pressable, Keyboard, KeyboardAvoidingView } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, Pressable, Keyboard, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { ScrollView, TextInput, TouchableOpacity } from 'react-native-gesture-handler'
+import { ScrollView, TextInput} from 'react-native-gesture-handler'
 import MapView, { Marker } from 'react-native-maps'
-import NumericInput from 'react-native-numeric-input'
 import AutoComplete from 'react-native-autocomplete-input'
 import Slider from '@react-native-community/slider'
+import { FontAwesome } from '@expo/vector-icons';
+import { api_endpoint, csrftoken, renewCSRFToken, resetStackStates } from '../../../../../util/utils'
+
 
 export default function PublishDetailsPage({navigation, route}) {
-  const [carModel, setCarModel] = useState('')
-  const [carModelsList, setCarModelsList] = useState([])
+  const [note, setNote] = useState('asdf');
+  const [carModel, setCarModel] = useState('asdf');
+  const [carModelsList, setCarModelsList] = useState([]);
+  const [seatCount, setSeatCount] = useState(0);
+  const [fee, setFee] = useState(0);
+  const departure = route.params.departure;
+  const departureCoordinates = route.params.departureCoordinates;
+  const destination = route.params.destination;
+  const destinationCoordinates = route.params.destinationCoordinates;
+  const maxFee = route.params.fee ?? 100;
+  const date = route.params.date;
+  const time = route.params.time;
+
+  // {"date": "2023-04-18", "departureAddress": "San Francisco County, CA", "departureCoordinates": {"latitude": 37.785834, "latitudeDelta": 0.0922, "longitude": -122.406417, "longitudeDelta": 0.05183658170914543}, "destinationAddress": "San Francisco County, CA", "destinationCoordinates": {"latitude": 37.785834, "latitudeDelta": 0.0922, "longitude": -122.406417, "longitudeDelta": 0.05183658170914543}, "time": "14:08"}
+
   const queriedCarModels = React.useMemo(
     () => carModelsList.filter((item) =>
     item.toLowerCase().includes(carModel.toLowerCase())),
@@ -27,56 +42,117 @@ export default function PublishDetailsPage({navigation, route}) {
     setCarModelsList(['Bmw', 'Mercedes', 'Ford', 'Hyundai'])
   }, [])
 
+  const onPublishRequest= async function(){
+    await renewCSRFToken();
+    const response = await fetch(`${api_endpoint}trips/create/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      },
+      body: JSON.stringify(
+        {
+          'departure': departure,
+          'departure_coordinates': departureCoordinates,
+          'destination': destination,
+          'destination_coordinates': destinationCoordinates,
+          'fee': fee,
+          'departure_date': date,
+          'departure_time': time,
+          'car_model': carModel,
+          'empty_seats': seatCount,
+          'max_seats': seatCount,
+          'note': note,
+          'on_going': false,
+          'terminated': false,
+        }
+      )
+    });
+    navigation.navigate('TripsStack');
+  }
+
   return (
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>
           <ScrollView style={styles.foregroundContainer} contentContainerStyle={styles.scrollContentContainer}>
             <View>
               <Text>Yolculuk Notu:</Text>
-              <TextInput multiline numberOfLines={4} maxLength={40} style={{borderWidth:1, borderRadius:15, minHeight:100, padding:10}} placeholder='Bu not yolculuğunun paylaşıldığı sayfada görüntülenecek!'/>
+              <TextInput multiline numberOfLines={4} maxLength={40} style={styles.noteInput} onChangeText={setNote} placeholder='Bu not yolculuğunun paylaşıldığı sayfada görüntülenecek!'/>
             </View>
+
             <View style={{zIndex:2}}>
-              <Text>Araç Marka/Modeli</Text>
-              <AutoComplete
+              <Text>Araç Marka/Modeli: </Text>
+                <AutoComplete
+                containerStyle={styles.formInput}
+                inputContainerStyle={{borderWidth:0}}
+                renderTextInput={(props)=>{return(<TextInput {...props} style={styles.autoCompleteTextInput}></TextInput>)}}
                 autoCorrect={false}
                 data={suggestions}
                 value={carModel}
                 onChangeText={setCarModel}
-                placeholder={'type a car model'}
+                placeholder='örn. Hyundai Accent'
                 flatListProps={{
                   keyboardShouldPersistTaps: 'always',
                   renderItem: ({ item }) => (
-                    <TouchableOpacity style={{backgroundColor:'white'}} onPress={()=>setCarModel(item)}>
+                    <TouchableOpacity style={{backgroundColor:colors.white, padding:10}} onPress={()=>setCarModel(item)}>
                       <Text>{item}</Text>
                     </TouchableOpacity>
                   ),
-                }}/>  
+                }}/>
             </View>
-            <View style={{backgroundColor:'purple'}}>
+
+            <View style={{backgroundColor:'purple', borderRadius:10 }}>
               <View focusable={false} style={{...StyleSheet.absoluteFillObject, zIndex:1, backgroundColor:'rgba(0,0,0,0)'}}/>
-              <MapView style={{...StyleSheet.absoluteFillObject, minHeight:200, position:'relative'}}/>
+              <MapView style={{...StyleSheet.absoluteFillObject, minHeight:200, position:'relative', borderRadius:10}}/>
+            </View>
+
+            <View>
+              <Text>Boş Koltuk Sayısı:</Text>
+              <View style={styles.numericUpDownContainer}>
+                <TouchableOpacity style={styles.upDownButton} onPress={()=>{if (seatCount == 0) return; setSeatCount(seatCount-1)}}>
+                  <FontAwesome name={'minus'} size={10} color={colors.white}/>
+                </TouchableOpacity>
+                <TextInput style={styles.numericUpDownInput} onChangeText={(text)=>{if (text === ''){ setSeatCount(0); return;} setSeatCount(parseInt(text))}} keyboardType='numeric'>{seatCount}</TextInput>
+                <TouchableOpacity style={styles.upDownButton} onPress={()=>setSeatCount(seatCount+1)}>
+                  <FontAwesome name={'plus'} size={10} color={colors.white}/>
+                </TouchableOpacity>
+              </View>
             </View>
             
             <View>
-              <Text>Boş Koltuk Sayısı</Text>
-              <NumericInput onChange={value => console.log(value)}/>
+              <Text>Ücret:</Text>
+              <View style={{alignItems:'center', alignSelf:'flex-start'}}>
+                <Text>{fee.toFixed(1)}</Text>
+                <Slider
+                  style={{width: 200, height: 40}}
+                  value={fee}
+                  minimumValue={maxFee * 0}
+                  maximumValue={maxFee * 1}
+                  step={0.5}
+                  minimumTrackTintColor={colors.blue}
+                  maximumTrackTintColor="#000000"
+                  onSlidingComplete={(value)=>{setFee(value);}}
+                  onValueChange={(value)=>{setFee(value);}}
+                  />
+              </View>
             </View>
-            
-            <View>
-              <Text>Ücret</Text>
-              <Slider
-                style={{width: 200, height: 40}}
-                minimumValue={0}
-                maximumValue={1}
-                minimumTrackTintColor="blue"
-                maximumTrackTintColor="#000000"
-              />
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={()=>{onPublishRequest()}}><Text style={{color:colors.white}}>Onayla</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={navigation.popToTop}><Text style={{color:colors.white}}>Vazgeç</Text></TouchableOpacity>
             </View>
-            
           </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
   )
+}
+
+const colors = {
+  blue: '#2DBDFF',
+  ligtherblue: '#2497CC',
+  white: '#fff',
+  black: '#000',
+  deepblue: '#004369',
 }
 
 const styles = StyleSheet.create({
@@ -105,5 +181,47 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: '100%',
+  },
+  noteInput:{ 
+    borderRadius:10, 
+    minHeight:100, 
+    padding:10,
+    backgroundColor: '#d9d9d9',
+  },
+  formInput: {
+    borderRadius: 10,
+    minWidth: '40%',
+    padding: 10,
+    backgroundColor: '#d9d9d9',
+  },
+  autoCompleteTextInput: {
+    backgroundColor: '#d9d9d9',
+  },
+  numericUpDownContainer: {
+    flexDirection:'row',
+    maxWidth: '50%',
+    gap:5,
+  },
+  upDownButton: {
+    borderRadius: '50%',
+    padding:10,
+    backgroundColor: '#d9d9d9',
+  },
+  numericUpDownInput: {
+    backgroundColor: '#d9d9d9',
+    borderRadius: 10,
+    minWidth: '10%',
+    maxWidth: '50%',
+    textAlign:'center',
+  },
+  buttonContainer: {
+    flexDirection:'row',
+    justifyContent:'space-evenly'
+  },
+  button:{
+    backgroundColor:colors.blue,
+    borderRadius: 15,
+    padding: 15,
+    paddingHorizontal: 30,
   },
 })

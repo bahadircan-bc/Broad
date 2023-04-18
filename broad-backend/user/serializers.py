@@ -55,11 +55,17 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
     passengers = ProfileSerializer(required=False, many=True)
-    driver = ProfileSerializer()
+    driver = ProfileSerializer(required=False)
 
     class Meta:
         model = Trip
-        fields = ['pk', 'driver', 'passengers', 'departure', 'destination', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated']
+        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated']
+
+class CreateTripSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Trip
+        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated']
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
@@ -74,9 +80,6 @@ class ChangePasswordSerializer(serializers.Serializer):
 
         if data['new_password'] != data['confirm_password']:
             raise serializers.ValidationError("Passwords do not match.")
-
-        # Add any additional password policy validations based on learn.microsoft.com.
-        # For example, you can enforce minimum password length, complexity, etc.
 
         return data
 

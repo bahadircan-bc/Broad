@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity } from 'react-na
 import React from 'react'
 import { FontAwesome } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
+import { api_endpoint, csrftoken, renewCSRFToken } from '../../../../../util/utils';
 
 const SettingsMenuItem = (props) => {
   return (
@@ -35,7 +36,17 @@ export default function OptionsPage({navigation}) {
             }}/>
             <SettingsMenuItem menuText='Bunu yap'/>
             <SettingsMenuItem menuText='Şifreyi Değiştir' onPress={()=>navigation.navigate('EditPassword')}/>
-            <SettingsMenuItem menuText='Oturumu kapat' onPress={()=>navigation.replace('Main')}/>
+            <SettingsMenuItem menuText='Oturumu kapat' onPress={async ()=>{
+              await renewCSRFToken(); 
+              const response = await fetch(`${api_endpoint}logout/`, { 
+                method: 'POST', headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrftoken,
+                }
+              });
+              if(response.status == 200)
+              navigation.replace('Main');
+            }}/>
           </ScrollView>
         </View>
       </SafeAreaView>

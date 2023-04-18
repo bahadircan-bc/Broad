@@ -4,7 +4,7 @@ from user.models import Profile, Trip, Review
 from django.db.models import Q, Avg
 from rest_framework import viewsets, views
 from rest_framework import permissions
-from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer
+from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer, CreateTripSerializer
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -20,7 +20,6 @@ class LogInView(views.APIView):
     authentication_classes = [authentication.BasicAuthentication, authentication.SessionAuthentication]
     
     def post(self, request):
-        print(request.data)
         username = request.data['username']
         password = request.data['password']
         user = authenticate(request=request, username=username, password=password)
@@ -51,7 +50,6 @@ class CreateUserView(generics.CreateAPIView):
     """
     serializer_class = UserCreationSerializer
     def post(self, request: Request):
-        print(f'{request.data}')
         form = CustomUserCreationForm(request.data)
         if form.is_valid():
             user = form.save()
@@ -100,7 +98,6 @@ class UpdateProfileView(generics.GenericAPIView):
 
     # Add this method for PATCH requests
     def patch(self, request:Request, *args, **kwargs):
-        print(f'{request.parser_context}')
         profile_instance = self.get_object_from_queryset(self.profile_queryset, kwargs['profile_pk'])
         user_pk = profile_instance.user.pk
         user_instance = self.get_object_from_queryset(self.user_queryset, user_pk)
@@ -123,18 +120,12 @@ class ChangePasswordView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        print('5')
         return self.request.user
 
     def update(self, request, *args, **kwargs):
-        user = self.request.user
-        print('1')
         serializer = self.get_serializer(data=request.data)
-        print('2')
         serializer.is_valid(raise_exception=True)
-        print('3')
         self.perform_update(serializer)
-        print('4')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TripViewSet(viewsets.ModelViewSet):
@@ -179,9 +170,13 @@ class PastTripViewSet(viewsets.ModelViewSet):
     serializer_class = TripSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-class CreateTripView(generics.CreateAPIView):
-    serializer_class = TripSerializer
+class CreateTripView(generics.ListCreateAPIView):
+    queryset=Trip.objects.all()
+    serializer_class = CreateTripSerializer
     permission_classes = [permissions.IsAuthenticated]
+    def perform_create(self, serializer):
+        profile = self.request.user.profile
+        serializer.save(driver=profile)
 
 class UpdateTripView(generics.UpdateAPIView):
     serializer_class = TripSerializer

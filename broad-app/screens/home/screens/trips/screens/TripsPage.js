@@ -37,6 +37,7 @@ export default function TripsPage({navigation}) {
   const [activeTripList, setActiveTripList] = useState();
   const [terminatedTripList, setTerminatedTripList] = useState();
   const [registeredTripList, setRegisteredTripList] = useState();
+  const isFocused = useIsFocused();
 
   const fetchItems = async function(){ 
     let response = await fetch(`${api_endpoint}active_trips/`, {
@@ -70,13 +71,14 @@ export default function TripsPage({navigation}) {
   }
 
   useEffect(()=>{
+    if(!isFocused) return;
     try{
       fetchItems()
     } catch(error)
     {
       console.log(error)
     }
-  }, [])
+  }, [isFocused])
 
   const renderItem = (flatlistIdentifier) => function({item}){
     return (
@@ -90,7 +92,7 @@ export default function TripsPage({navigation}) {
         <View style={styles.foregroundContainer}>
           <View style={styles.flatListContainer}>
             <TouchableOpacity style={styles.titleContainer}>
-              <Text style={styles.headerText}>Aktif Yolculuklarım</Text>
+              <Text style={styles.headerText}>Paylaşılan Yolculuklarım</Text>
               <FontAwesome name={'angle-right'} color={colors.blue} size={15}/>
             </TouchableOpacity>
             {activeTripList?.length > 0 
@@ -106,7 +108,7 @@ export default function TripsPage({navigation}) {
           <Divider/>
           <View style={styles.flatListContainer}>
             <TouchableOpacity style={styles.titleContainer}>
-              <Text style={styles.headerText}>Kayıtlı Yolculuklarım</Text>
+              <Text style={styles.headerText}>Kayıtlı Olduğum Yolculuklarım</Text>
               <FontAwesome name={'angle-right'} color={colors.blue} size={15}/>
             </TouchableOpacity>
             {registeredTripList?.length > 0 

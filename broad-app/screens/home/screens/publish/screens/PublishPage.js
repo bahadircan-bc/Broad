@@ -6,11 +6,11 @@ export default function PublishPage({navigation, route}) {
   
   const [departureCoordinates, setDepartureCoordinates] = useState();
   const [destinationCoordinates, setDestinationCoordinates] = useState();
-  const [departureAddress, setDepartureAddress] = useState();
-  const [destinationAddress, setDestinationAddress] = useState();
+  const [departure, setDeparture] = useState();
+  const [destination, setDestination] = useState();
 
   const [date, setDate] = useState(new Date());
-  const [hour, setHour] = useState(new Date());
+  const [time, setTime] = useState(new Date());
 
   const [mode, setMode] = useState('date');
   const [showDate, setShowDate] = useState(false);
@@ -36,25 +36,20 @@ export default function PublishPage({navigation, route}) {
         if (route.params?.mode === 'clear')
         {
           setDepartureCoordinates();
-          setDepartureAddress();
+          setDeparture();
           setDestinationCoordinates();
-          setDestinationAddress();
+          setDestination();
         }
         if (route.params?.mode === 'departure') 
         {
           setDepartureCoordinates(route.params.coordinates);
-          setDepartureAddress(route.params.address);
+          setDeparture(route.params.address);
         }
         if (route.params?.mode === 'destination')
         {
           setDestinationCoordinates(route.params.coordinates);
-          setDestinationAddress(route.params.address);
+          setDestination(route.params.address);
         } 
-
-
-        // TODO  THIS IS ONLY FOR DEBUGGING
-        setDestinationAddress('Destination Address');
-        setDepartureAddress('Departure Address');
     } catch(error)
     {
       console.log(error)
@@ -87,7 +82,7 @@ export default function PublishPage({navigation, route}) {
               <View style={{flex:1}}>
               {showTime ? <DateTimePicker
                 testID="dateTimePicker"
-                value={hour}
+                value={time}
                 mode={'time'}
                 is24Hour={true}
                 onChange={onChange}
@@ -97,18 +92,18 @@ export default function PublishPage({navigation, route}) {
             </View>
           <TouchableOpacity style={styles.simpleTouchableOpacity} 
               onPress={() => {navigation.navigate({name:'Map', params:{placeholder:'Başlangıç noktasını seçin', mode:'departure', from:'Publish'}})}}>
-              <Text>{departureAddress? departureAddress.trim() : 'Başlangıç Noktası'}</Text>
+              <Text>{departure? departure.trim() : 'Başlangıç Noktası'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.simpleTouchableOpacity} 
               onPress={() => {navigation.navigate({name:'Map', params:{placeholder:'Varış noktasını seçin', mode:'destination', from:'Publish'}})}}>
-              <Text>{destinationAddress? destinationAddress.trim() : 'Varış Noktası'}</Text>
+              <Text>{destination? destination.trim() : 'Varış Noktası'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.simpleTouchableOpacity} 
               onPress={() => {
-                if(!destinationAddress) return;
-                if(!departureAddress) return;
+                if(!destination) return;
+                if(!departure) return;
 
-                navigation.navigate({name:'PublishDetails', params:{departureCoordinates:departureCoordinates, destinationCoordinates:destinationCoordinates, departureDate:date.toDateString(), departureAddress:departureAddress, destinationAddress:destinationAddress}})
+                navigation.navigate({name:'PublishDetails', params:{departureCoordinates:departureCoordinates, destinationCoordinates:destinationCoordinates, date:date.toDateString(), time:time, departure:departure, destination:destination}})
                 }}>
               <Text style={{textAlign:'center'}}>Onayla</Text>
               </TouchableOpacity>
@@ -153,18 +148,18 @@ export default function PublishPage({navigation, route}) {
             </View>
             <TouchableOpacity style={styles.simpleTouchableOpacity} 
               onPress={() => {navigation.navigate({name:'Map', params:{placeholder:'Başlangıç noktasını seçin', mode:'departure', from:'Publish'}})}}>
-              <Text>{departureAddress? departureAddress.trim() : 'Başlangıç Noktası'}</Text>
+              <Text>{departure? departure.trim() : 'Başlangıç Noktası'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.simpleTouchableOpacity} 
               onPress={() => {navigation.navigate({name:'Map', params:{placeholder:'Varış noktasını seçin', mode:'destination', from:'Publish'}})}}>
-              <Text>{destinationAddress? destinationAddress.trim() : 'Varış Noktası'}</Text>
+              <Text>{destination? destination.trim() : 'Varış Noktası'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.simpleTouchableOpacity} 
               onPress={() => {
-                if(!destinationAddress) return;
-                if(!departureAddress) return;
+                if(!destination) return;
+                if(!departure) return;
 
-                navigation.navigate({name:'PublishDetails', params:{departureCoordinates:departureCoordinates, destinationCoordinates:destinationCoordinates, departureDate:date.toDateString(), departureAddress:departureAddress, destinationAddress:destinationAddress}})
+                navigation.navigate({name:'PublishDetails', params:{departureCoordinates:departureCoordinates, destinationCoordinates:destinationCoordinates, date:date.toISOString().slice(0, 10), time:date.toTimeString().substring(0,5), departure:departure, destination:destination}})
                 }}>
               <Text style={{textAlign:'center'}}>Onayla</Text>
             </TouchableOpacity>

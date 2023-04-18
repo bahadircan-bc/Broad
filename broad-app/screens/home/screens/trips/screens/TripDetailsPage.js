@@ -1,12 +1,13 @@
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, ImageBackground, TextInput, Modal, Animated } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, ImageBackground, TextInput, Modal, Animated, Alert } from 'react-native'
 import { FontAwesome } from '@expo/vector-icons';
 import { Divider } from 'react-native-paper'
 import React, { useEffect, useRef, useState } from 'react'
 import { ScrollView } from 'react-native-gesture-handler';
 import MapView, { Marker } from 'react-native-maps'
+import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
 
-import { api_endpoint, formatDate } from '../../../../../util/utils';
+import { api_endpoint, csrftoken, formatDate, renewCSRFToken } from '../../../../../util/utils';
 
 const PassengerCard = (props) => {
   return (
@@ -23,7 +24,6 @@ export default function TripDetailsPage({navigation, route}) {
   const [tripDetails, setTripDetails] = useState({});
   const [passengerCardList, setPassengerCardList] = useState([]);
   const [starsList, setStarsList] = useState([]);
-  const [showBiddingModal, setShowBiddingModal] = useState(false);
   const [region, setRegion] = useState(null);
 
   const emergencyButtonLocation = useRef(new Animated.Value(0)).current;
@@ -68,12 +68,45 @@ export default function TripDetailsPage({navigation, route}) {
     setPassengerCardList(passengerList)
   }
 
+  const onRemoveTrip = () =>
+    Alert.alert('Emin misiniz?', 'Yolculuğunuz yayından kaldırılacaktır.', [
+      {
+        text: 'Vazgeç',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'Onayla', onPress: async () => {
+        await renewCSRFToken();
+        const response = await fetch(`${api_endpoint}trips/delete/${route.params.pk}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken' : csrftoken,
+            'Content-Type' : 'application/json',
+          }
+        })
+        .then(response => {if(response.status == 200 || response.status == 204) return; else throw new Error(`HTTP status ${response.status}`)});
+        navigation.popToTop();
+      }},
+    ]);
+
   useEffect(()=>{
-      try {
-        fetchItems();
-      } catch (error) {
-        console.log(error);
-      }
+    navigation.setOptions({
+      headerRight: () => (
+        <Menu style={styles.menuContainer}>
+          <MenuTrigger>
+            <FontAwesome name='ellipsis-v' size={24} color={colors.white} style={styles.settingsIcon}/>
+          </MenuTrigger>
+          <MenuOptions customStyles={styles.popupMenu}>
+            <MenuOption text='Yayından Kaldır' onSelect={onRemoveTrip}/>
+          </MenuOptions>
+        </Menu>
+      ),
+    })
+    try {
+      fetchItems();
+    } catch (error) {
+      console.log(error);
+    }
         
   }, [])
 
@@ -314,5 +347,13 @@ const styles = StyleSheet.create({
   expandedEmergencyText: {
     color: colors.white,
     textAlign:'center'
+  },
+  popupMenu: {
+    optionWrapper:{padding:10}, 
+    optionText:{textAlign:'center', fontSize:14}, 
+    optionsContainer:{width:'35%', borderRadius:10, marginTop:40},
+  },
+  settingsIcon:{
+    padding:15,
   },
 })

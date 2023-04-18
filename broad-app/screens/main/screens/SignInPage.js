@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Pressable, TextInput, Keyboard } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
-import { api_endpoint, csrftoken } from '../../../util/utils';
+import { api_endpoint, csrftoken, renewCSRFToken } from '../../../util/utils';
 
 
 
@@ -24,6 +24,7 @@ export default function SignInPage({navigation}) {
       let response = ''
       if (checkInputs()){
         setButtonDisabled(true);
+        await renewCSRFToken();
         response = await fetch(`${api_endpoint}login/`, {
           method: 'POST',
           headers: {

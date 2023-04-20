@@ -19,6 +19,9 @@ from django.urls import include, path
 from rest_framework import routers
 from user import views
 
+from django.conf import settings
+from django.conf.urls.static import static  
+
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
@@ -37,13 +40,18 @@ urlpatterns = [
     path('login/', views.LogInView.as_view()),
     path('logout/', views.LogOutView.as_view()),
     path('users/create/', views.CreateUserView.as_view(),  name='create_user'),
+    path('profiles/update_profile_picture/', views.UpdateProfilePictureView.as_view(), name='update_profile_picture'),
     path('profiles/update/<int:profile_pk>', views.UpdateProfileView.as_view(), name='update_profile'),
     path('change_password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('trips/create/', views.CreateTripView.as_view(), name='create_trip'),
     path('trips/update/<int:pk>', views.UpdateTripView.as_view(),  name='update_trip'),
     path('trips/delete/<int:pk>', views.DeleteTripView.as_view(),  name='delete_trip'),
+    path('trips/hide/<int:pk>', views.HideTripView.as_view(), name='hide_trip'),
     path('reviews/create/', views.CreateReviewView.as_view(), name='create_review'),
     path('reviews/update/<int:pk>', views.UpdateReviewView.as_view(),  name='update_review'),
     path('reviews/delete/<int:pk>', views.DeleteReviewView.as_view(),  name='delete_review'),
     path('', include(router.urls)),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

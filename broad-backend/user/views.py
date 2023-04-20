@@ -4,7 +4,7 @@ from user.models import Profile, Trip, Review
 from django.db.models import Q, Avg
 from rest_framework import viewsets, views
 from rest_framework import permissions
-from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer, CreateTripSerializer
+from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer, CreateTripSerializer, HideTripSerializer
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -104,6 +104,8 @@ class UpdateProfileView(generics.GenericAPIView):
 
         profile_serializer = self.profile_serializer_class(profile_instance, data=request.data.get('profile'), partial=True, context={'request': request})
         user_serializer = self.user_serializer_class(user_instance, data=request.data.get('user'), partial=True, context={'request': request})
+        profile_serializer.is_valid() 
+        user_serializer.is_valid()
 
         if profile_serializer.is_valid() and user_serializer.is_valid():
             profile_serializer.save()
@@ -111,9 +113,27 @@ class UpdateProfileView(generics.GenericAPIView):
             return Response({'profile': profile_serializer.data, 'user': user_serializer.data})
         else:
             return Response({'errors': {'profile': profile_serializer.errors, 'user': user_serializer.errors}}, status=status.HTTP_400_BAD_REQUEST)
-
+        
     def get_object_from_queryset(self, queryset, pk):
         return generics.get_object_or_404(queryset, pk=pk)
+        
+class UpdateProfilePictureView(generics.UpdateAPIView):
+    serializer_class = ProfileSerializer
+    queryset = Profile.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Profile.objects.filter(user=self.request.user)
+
+    def get_object_from_queryset(self, queryset, pk):
+        return self.request.user.profile
+    
+    def get_object(self):
+        return self.request.user.profile
+    
+    def patch(self, request, *args, **kwargs):
+        print(request.data)
+        return super().patch(request, *args, **kwargs)
     
 class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = ChangePasswordSerializer
@@ -185,10 +205,16 @@ class UpdateTripView(generics.UpdateAPIView):
         profile = self.request.user.profile
         return Trip.objects.filter(driver=profile)
     
-class DeleteTripView(generics.DestroyAPIView):
-    serializer_class = TripSerializer
+class HideTripView(generics.UpdateAPIView):
+    serializer_class = HideTripSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+    def get_queryset(self):
+        return Trip.objects.filter(driver=self.request.user.profile)
+        
+class DeleteTripView(generics.DestroyAPIView):
+    serializer_class = HideTripSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_queryset(self):
         profile = self.request.user.profile
         return Trip.objects.filter(driver=profile)

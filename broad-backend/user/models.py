@@ -7,7 +7,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile') # Delete profile when user is deleted
     profile_name = models.CharField(max_length=50)
-    profile_picture = models.ImageField(upload_to='profile_pics', blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True)
     followers = models.ManyToManyField('self', related_name='following', symmetrical=False, blank=True)
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
@@ -55,6 +55,7 @@ class Trip(models.Model):
     on_going = models.BooleanField()
     terminated = models.BooleanField()
     date_published = models.DateField(auto_now_add=True)
+    is_hidden = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f'{self.driver.user.username} : {self.departure} -> {self.destination} : {self.departure_date}'

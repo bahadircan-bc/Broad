@@ -11,7 +11,6 @@ class UserCreationSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ['name', 'surname', 'username', 'password1', 'password2', 'email']
 
-
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
@@ -23,8 +22,13 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         model = Group
         fields = ['url', 'name']
 
+class AuthorSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['profile_name', 'profile_picture']
+
 class ReviewSerializer(serializers.HyperlinkedModelSerializer):
-    author = serializers.StringRelatedField(source='author.profile_name')
+    author = AuthorSerializer()
     receiver = serializers.StringRelatedField(source='receiver.profile_name')
     class Meta:
         model = Review
@@ -59,13 +63,17 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Trip
-        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated']
+        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated', 'is_hidden']
 
-class CreateTripSerializer(serializers.HyperlinkedModelSerializer):
-
+class HideTripSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Trip
-        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated']
+        fields = ['is_hidden']
+
+class CreateTripSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Trip
+        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated', 'is_hidden']
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)

@@ -1,5 +1,7 @@
 import { CommonActions, StackActions } from "@react-navigation/native";
 
+export const google_api_key = 'AIzaSyDEcBXKRUuR8cnXmiMAjTSolIUaEIAdols'
+
 export const api_endpoint = 'http://127.0.0.1:8000/'
 export let csrftoken = ' '
 export function setCsrfToken(newToken) {

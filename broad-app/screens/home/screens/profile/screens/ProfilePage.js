@@ -42,7 +42,7 @@ export default function ProfilePage({navigation}) {
     setUsername(results.profile_name);
     setTripCount(results.trips_as_driver.length + results.trips_as_passenger.length);
     setRating(parseInt(results.average_rating));
-    setProfilePicture('profile');
+    setProfilePicture(results.profile_picture);
   }
 
   useEffect(()=>{
@@ -56,7 +56,7 @@ export default function ProfilePage({navigation}) {
 
   const renderItem = function({item}){
     return (
-      <ReviewElement name={item.author} imageURL={item.imageURL} comment={item.content}/>
+      <ReviewElement name={item.author.profile_name} imageURL={item.author.profile_picture} comment={item.content}/>
     )
   }
   
@@ -65,7 +65,7 @@ export default function ProfilePage({navigation}) {
       <SafeAreaView style={styles.safeContainer}>
         <View style={styles.foregroundContainer}>
           <View style={styles.pageHeaderContainer}>
-            <Image source={{uri:'https://placeimg.com/640/480/any'}} style={styles.profileImage}/>
+            <Image source={{uri:profilePicture}} style={styles.profileImage}/>
             <Text style={styles.headerText}>{username}</Text>
             <View style={styles.pageHeaderStatsContainer}>
               <View style={{alignItems:'center'}}><Text style={styles.pageHeaderStatTitleText}>Takipçi</Text><Text style={styles.pageHeaderStatText}>{followers}</Text></View>

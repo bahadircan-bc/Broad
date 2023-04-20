@@ -1,13 +1,14 @@
 import { StyleSheet, Text, View, TextInput, SafeAreaView, Modal, TouchableOpacity, Image, ImageBackground, Keyboard } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Divider } from 'react-native-paper'
 import Slider from '@react-native-community/slider';
 import { FontAwesome } from '@expo/vector-icons';
 import { ScrollView } from 'react-native-gesture-handler';
 import MapView, { Marker } from 'react-native-maps'
+import MapViewDirections from 'react-native-maps-directions'
 
 
-import { formatDate, clamp, api_endpoint } from '../../../../../util/utils'
+import { formatDate, clamp, api_endpoint, google_api_key } from '../../../../../util/utils'
 
 const PassengerCard = (props) => {
   return (
@@ -25,6 +26,7 @@ export default function SearchItemPage({navigation, route}) {
   const [showBiddingModal, setShowBiddingModal] = useState(false);
   const [biddingValue, setBiddingValue] = useState(0);
   const [region, setRegion] = useState();
+  const mapRef = useRef(null);
 
   const fetchItems = async function (){
     let response = await fetch(`${api_endpoint}trips/${route.params.pk}/`, {
@@ -37,7 +39,9 @@ export default function SearchItemPage({navigation, route}) {
     console.log(response)
     setTripDetails({
       username: response.driver.profile_name,
-      imageURL: 'https://placeimg.com/640/480/any',
+      imageURL: response.driver.profile_picture,
+      departureCoordinates: response.departure_coordinates,
+      destinationCoordinates: response.destination_coordinates,
       tripNote: response.note,
       date: response.departure_date,
       time: response.departure_time.substring(0,5),
@@ -57,19 +61,26 @@ export default function SearchItemPage({navigation, route}) {
 
     let passengerList = [];
     response.passengers.forEach((passenger, index) => {
-      passengerList.push(<PassengerCard key={index} username={passenger.profile_name} imageURL={'https://placeimg.com/640/480/any'}/>)
+      passengerList.push(<PassengerCard key={index} username={passenger.profile_name} imageURL={passenger.profile_picture}/>)
   });
 
     setPassengerCardList(passengerList)
+
+    if (mapRef.current) {
+      mapRef.current.fitToCoordinates([response.departure_coordinates,response.destination_coordinates,
+      ], {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
   }
 
   useEffect(()=>{
       try {
-        fetchItems();
+        (async ()=>{await fetchItems()})()
       } catch (error) {
         console.log(error);
       }
-        
   }, [])
 
   const sendMessageToDriver = function() {
@@ -86,6 +97,21 @@ export default function SearchItemPage({navigation, route}) {
     setBiddingValue(0);
     setShowBiddingModal(!showBiddingModal);
   }
+
+  // useEffect(() => {
+  //   if(tripDetails.departureCoordinates && tripDetails.destinationCoordinates)
+  //     console.log(`inside if ${JSON.stringify(tripDetails)}`)
+  //     if (mapRef.current) {
+  //       mapRef.current.fitToCoordinates([tripDetails.departureCoordinates,tripDetails.destinationCoordinates,
+  //       ], {
+  //         edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+  //         animated: true,
+  //       });
+  //     }
+  //   else
+  //     console.log(`inside else ${JSON.stringify(tripDetails)}`)
+    
+  // }, []);
 
   return (
     <View style={styles.backgroundContainer}>
@@ -135,7 +161,15 @@ export default function SearchItemPage({navigation, route}) {
             </View>
             <Divider/>
               <View style={styles.mapContainer}>
-                <MapView style={styles.map} region={region} onRegionChangeComplete={setRegion}/>
+                <MapView style={styles.map} region={region} onRegionChangeComplete={setRegion} ref={mapRef}>
+                  <MapViewDirections
+                    origin={tripDetails.departureCoordinates}
+                    destination={tripDetails.destinationCoordinates}
+                    apikey={google_api_key} // insert your API Key here
+                    strokeWidth={4}
+                    strokeColor="#111111"
+                  />
+                </MapView>
               </View>
             <Divider/>
             <View style={{padding:10}}>

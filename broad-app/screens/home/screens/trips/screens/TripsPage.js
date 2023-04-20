@@ -6,7 +6,7 @@ import { Divider } from 'react-native-paper'
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { api_endpoint, csrftoken } from '../../../../../util/utils';
 
-const TripsItem = function({flatlistIdentifier, pk, name, ownTrip, departure, destination, onGoing}){
+const TripsItem = function({flatlistIdentifier, pk, name, ownTrip, departure, destination, onGoing, isHidden}){
   const navigation = useNavigation();
   const activeTextOpacity = useRef(new Animated.Value(0)).current
 
@@ -28,6 +28,9 @@ const TripsItem = function({flatlistIdentifier, pk, name, ownTrip, departure, de
       <Text style={{fontSize:16}}>{departure} - {destination}</Text>
       {onGoing && <Animated.View style={{borderRadius:5, padding:5, position:'absolute', right:10, backgroundColor:colors.green, opacity:activeTextOpacity}}>
         <Text style={{color:colors.white}}>BAŞLADI</Text>
+      </Animated.View>}
+      {isHidden && <Animated.View style={{borderRadius:5, padding:5, position:'absolute', right:10, backgroundColor:'#d9d9d9', opacity:activeTextOpacity}}>
+        <Text style={{color:colors.white}}>GIZLI</Text>
       </Animated.View>}
     </TouchableOpacity>
   )
@@ -82,7 +85,7 @@ export default function TripsPage({navigation}) {
 
   const renderItem = (flatlistIdentifier) => function({item}){
     return (
-      <TripsItem flatlistIdentifier={flatlistIdentifier} pk={item.pk} ownTrip={item.ownTrip} name={item.name} departure={item.departure} destination={item.destination} onGoing={item.on_going}/>
+      <TripsItem flatlistIdentifier={flatlistIdentifier} pk={item.pk} ownTrip={item.ownTrip} name={item.name} departure={item.departure} destination={item.destination} onGoing={item.on_going} isHidden={item.is_hidden}/>
     )
   }
 

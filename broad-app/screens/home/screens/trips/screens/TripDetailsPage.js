@@ -7,7 +7,8 @@ import MapView, { Marker } from 'react-native-maps'
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 
 
-import { api_endpoint, csrftoken, formatDate, renewCSRFToken } from '../../../../../util/utils';
+import { api_endpoint, csrftoken, formatDate, google_api_key, renewCSRFToken } from '../../../../../util/utils';
+import MapViewDirections from 'react-native-maps-directions';
 
 const PassengerCard = (props) => {
   return (
@@ -30,6 +31,7 @@ export default function TripDetailsPage({navigation, route}) {
   const [emergencyMenuOpen, setEmergencyMenuOpen] = useState(false);
   const expandButtonOpacity = useRef(new Animated.Value(0)).current;
 
+  const mapRef = useRef(null);
   const fetchItems = async function (){
     let response = await fetch(`${api_endpoint}${route.params.flatlistIdentifier}/${route.params.pk}/`, {
       method: 'GET',
@@ -41,7 +43,9 @@ export default function TripDetailsPage({navigation, route}) {
     console.log(response)
     setTripDetails({
       username: response.driver.profile_name,
-      imageURL: 'https://placeimg.com/640/480/any',
+      imageURL: response.driver.profile_picture,
+      departureCoordinates: response.departure_coordinates,
+      destinationCoordinates: response.destination_coordinates,
       tripNote: response.note,
       date: response.departure_date,
       time: response.departure_time.substring(0,5),
@@ -49,6 +53,7 @@ export default function TripDetailsPage({navigation, route}) {
       emptySeats: response.max_seats - response.empty_seats,
       maxSeats: response.max_seats,
       carModel: response.car_model,
+      isHidden: response.is_hidden,
     });
     
     var newStarsList = [];
@@ -62,13 +67,45 @@ export default function TripDetailsPage({navigation, route}) {
 
     let passengerList = [];
     response.passengers.forEach((passenger, index) => {
-      passengerList.push(<PassengerCard key={index} username={passenger.profile_name} imageURL={'https://placeimg.com/640/480/any'}/>)
-  });
-
+      passengerList.push(<PassengerCard key={index} username={passenger.profile_name} imageURL={passenger.profile_picture}/>)
+    });
     setPassengerCardList(passengerList)
+
+    if (mapRef.current) {
+      mapRef.current.fitToCoordinates([response.departure_coordinates,response.destination_coordinates,
+      ], {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
   }
 
-  const onRemoveTrip = () =>
+  const onHideTrip = () => {
+    Alert.alert('Emin misiniz?', (tripDetails.isHidden ? 'Yolculuğunuz gösterilecektir.' : 'Yolculuğunuz gizelenecektir.'), [
+      {
+        text: 'Vazgeç',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {text: 'Onayla', onPress: async () => {
+        await renewCSRFToken();
+        const response = await fetch(`${api_endpoint}trips/hide/${route.params.pk}`, {
+          method: 'PATCH',
+          headers: {
+            'X-CSRFToken' : csrftoken,
+            'Content-Type' : 'application/json',
+          },
+          body: JSON.stringify({
+            'is_hidden': tripDetails.isHidden ? 'false' : 'true',  
+          })
+        })
+        .then(response => {if(response.status == 200 || response.status == 204) return; else throw new Error(`HTTP status ${response.status}`)});
+        navigation.popToTop();
+      }},
+    ]);
+  }
+
+  const onRemoveTrip = () => {
     Alert.alert('Emin misiniz?', 'Yolculuğunuz yayından kaldırılacaktır.', [
       {
         text: 'Vazgeç',
@@ -88,25 +125,36 @@ export default function TripDetailsPage({navigation, route}) {
         navigation.popToTop();
       }},
     ]);
+  }
+    
 
   useEffect(()=>{
-    navigation.setOptions({
-      headerRight: () => (
-        <Menu style={styles.menuContainer}>
-          <MenuTrigger>
-            <FontAwesome name='ellipsis-v' size={24} color={colors.white} style={styles.settingsIcon}/>
-          </MenuTrigger>
-          <MenuOptions customStyles={styles.popupMenu}>
-            <MenuOption text='Yayından Kaldır' onSelect={onRemoveTrip}/>
-          </MenuOptions>
-        </Menu>
-      ),
-    })
+    console.log(route.params)
+    
     try {
-      fetchItems();
+      (async () => {
+        await fetchItems();
+        if('active_trips'.localeCompare(route.params.flatlistIdentifier) != 0) return;
+          navigation.setOptions({
+            headerRight: () => (
+              <Menu style={styles.menuContainer}>
+                <MenuTrigger>
+                  <FontAwesome name='ellipsis-v' size={24} color={colors.white} style={styles.settingsIcon}/>
+                </MenuTrigger>
+                <MenuOptions customStyles={styles.popupMenu}>
+                  <MenuOption text='Düzenle'/>
+                  <MenuOption text={tripDetails.isHidden ? 'Göster' : 'Gizle'} onSelect={onHideTrip}/>
+                  <MenuOption text='Yayından Kaldır' onSelect={onRemoveTrip}/>
+                </MenuOptions>
+              </Menu>
+            ),
+           })
+      })();
     } catch (error) {
       console.log(error);
     }
+
+    
         
   }, [])
 
@@ -158,7 +206,15 @@ export default function TripDetailsPage({navigation, route}) {
             </View>
             <Divider/>
               <View style={styles.mapContainer}>
-              <MapView style={styles.map} region={region} onRegionChangeComplete={setRegion}/>
+              <MapView style={styles.map} region={region} onRegionChangeComplete={setRegion} ref={mapRef}>
+                <MapViewDirections
+                  origin={tripDetails.departureCoordinates}
+                  destination={tripDetails.destinationCoordinates}
+                  apikey={google_api_key} // insert your API Key here
+                  strokeWidth={4}
+                  strokeColor="#111111"
+                />
+              </MapView>
               </View>
             <Divider/>
             <View style={{padding:10}}>

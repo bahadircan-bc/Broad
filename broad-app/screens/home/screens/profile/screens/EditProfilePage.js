@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { FlatList, TextInput } from 'react-native-gesture-handler';
 import { FontAwesome } from '@expo/vector-icons';
 import { api_endpoint, csrftoken, renewCSRFToken, setCsrfToken } from '../../../../../util/utils';
+import * as ImagePicker from 'expo-image-picker'
 
 export default function EditProfilePage({navigation, route}) {
   const [pk, setPk] = useState();
@@ -29,7 +30,7 @@ export default function EditProfilePage({navigation, route}) {
     setName(results.name);
     setSurname(results.surname);
     setEmail(results.email);
-    setProfilePicture('profile');
+    setProfilePicture(results.profile_picture);
   }
 
   useEffect(()=>{
@@ -58,7 +59,7 @@ export default function EditProfilePage({navigation, route}) {
         'email': email
       }}))
     await renewCSRFToken();
-    let response = await fetch(`${api_endpoint}profiles/update/${pk}`, {
+    let response = await fetch(`${api_endpoint}profiles/update/`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -80,6 +81,39 @@ export default function EditProfilePage({navigation, route}) {
     console.log(response);
     navigation.popToTop();
   }
+
+  const onRequestProfilePictureChange = async function (result) {
+    await renewCSRFToken();
+    const formData = new FormData();
+    formData.append('profile_picture', {
+      uri: result.assets[0].uri,
+      type: result.assets[0].type,
+      name: `${username}_pp.jpg`,
+    })
+    await fetch(`${api_endpoint}profiles/update_profile_picture/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-CSRFToken': csrftoken,
+      },
+      body: formData,
+    })
+  }
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfilePicture(result.assets[0].uri);
+      await onRequestProfilePictureChange(result);
+    }
+  };
   
   return (
     <View style={styles.backgroundContainer}>
@@ -87,8 +121,8 @@ export default function EditProfilePage({navigation, route}) {
         <Pressable style={styles.foregroundContainer} onPress={() => Keyboard.dismiss()}>
           <View style={styles.pageHeaderContainer}>
             <View style={{justifyContent:'center'}}>
-              <Image source={{uri:'https://placeimg.com/640/480/any'}} style={styles.profileImage}/>
-              <FontAwesome name='edit' size={50} color={'rgba(255, 255, 255, 0.5)'} style={{position:'absolute', marginLeft:18}}/>
+              <Image source={{uri:profilePicture}} style={styles.profileImage}/>
+              <FontAwesome name='edit' size={50} color={'rgba(255, 255, 255, 0.5)'} style={{position:'absolute', marginLeft:18}} onPress={async()=>{await pickImage()}}/>
             </View>
             <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
               <TextInput ref={textInputRef} style={styles.headerText} editable={editingName} onChangeText={setUsername} onSubmitEditing={()=>{setEditingName(false);}} onBlur={()=>{setEditingName(false)}}>{username}</TextInput> 

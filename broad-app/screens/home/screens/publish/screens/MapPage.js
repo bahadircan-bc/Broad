@@ -4,6 +4,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps'
 import * as Location from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
+import { useIsFocused } from '@react-navigation/native';
+import { google_api_key } from '../../../../../util/utils';
 
 const {width, height} = Dimensions.get('window')
 
@@ -18,9 +20,11 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO
 export default function MapPage({navigation, route}) {
   const [location, setLocation] = useState(null);
   const [region, setRegion] = useState(null);
-  const [firstRender, setFirstRender] = useState(true);
+  const isFocused = useIsFocused()
 
   useEffect(()=>{
+    if(!isFocused) return;
+
     (async () => {
       
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -38,10 +42,9 @@ export default function MapPage({navigation, route}) {
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA,
       });
-      setFirstRender(false);
     })();
 
-  }, [firstRender]);
+  }, [isFocused]);
 
   const GooglePlacesInput = function() {
     return (
@@ -57,7 +60,7 @@ export default function MapPage({navigation, route}) {
               });
             }}
             query={{
-              key: 'AIzaSyDEcBXKRUuR8cnXmiMAjTSolIUaEIAdols',
+              key: google_api_key,
               language: 'tr',
               components: 'country:tr',
             }}
@@ -66,7 +69,7 @@ export default function MapPage({navigation, route}) {
     );
   };
 
-  if (firstRender){
+  if (!region){
     return (
       <View style={{alignItems:'center', justifyContent:'center', flex:1}}>
         <ActivityIndicator/>

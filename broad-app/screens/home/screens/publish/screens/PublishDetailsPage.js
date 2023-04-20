@@ -1,16 +1,17 @@
 import { StyleSheet, Text, View, SafeAreaView, Pressable, Keyboard, KeyboardAvoidingView, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { ScrollView, TextInput} from 'react-native-gesture-handler'
 import MapView, { Marker } from 'react-native-maps'
+import MapViewDirections from 'react-native-maps-directions'
 import AutoComplete from 'react-native-autocomplete-input'
 import Slider from '@react-native-community/slider'
 import { FontAwesome } from '@expo/vector-icons';
-import { api_endpoint, csrftoken, renewCSRFToken, resetStackStates } from '../../../../../util/utils'
+import { api_endpoint, csrftoken, google_api_key, renewCSRFToken, resetStackStates } from '../../../../../util/utils'
 
 
 export default function PublishDetailsPage({navigation, route}) {
-  const [note, setNote] = useState('asdf');
-  const [carModel, setCarModel] = useState('asdf');
+  const [note, setNote] = useState('');
+  const [carModel, setCarModel] = useState('');
   const [carModelsList, setCarModelsList] = useState([]);
   const [seatCount, setSeatCount] = useState(0);
   const [fee, setFee] = useState(0);
@@ -21,8 +22,7 @@ export default function PublishDetailsPage({navigation, route}) {
   const maxFee = route.params.fee ?? 100;
   const date = route.params.date;
   const time = route.params.time;
-
-  // {"date": "2023-04-18", "departureAddress": "San Francisco County, CA", "departureCoordinates": {"latitude": 37.785834, "latitudeDelta": 0.0922, "longitude": -122.406417, "longitudeDelta": 0.05183658170914543}, "destinationAddress": "San Francisco County, CA", "destinationCoordinates": {"latitude": 37.785834, "latitudeDelta": 0.0922, "longitude": -122.406417, "longitudeDelta": 0.05183658170914543}, "time": "14:08"}
+  const mapRef = useRef(null);
 
   const queriedCarModels = React.useMemo(
     () => carModelsList.filter((item) =>
@@ -71,6 +71,17 @@ export default function PublishDetailsPage({navigation, route}) {
     navigation.navigate('TripsStack');
   }
 
+  useEffect(() => {
+    console.log({departureCoordinates},{destinationCoordinates})
+    if (mapRef.current) {
+      mapRef.current.fitToCoordinates([departureCoordinates,destinationCoordinates,
+      ], {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
+  }, []);
+
   return (
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>
@@ -103,7 +114,15 @@ export default function PublishDetailsPage({navigation, route}) {
 
             <View style={{backgroundColor:'purple', borderRadius:10 }}>
               <View focusable={false} style={{...StyleSheet.absoluteFillObject, zIndex:1, backgroundColor:'rgba(0,0,0,0)'}}/>
-              <MapView style={{...StyleSheet.absoluteFillObject, minHeight:200, position:'relative', borderRadius:10}}/>
+              <MapView style={{...StyleSheet.absoluteFillObject, minHeight:200, position:'relative', borderRadius:10}} ref={mapRef} >
+                <MapViewDirections
+                  origin={departureCoordinates}
+                  destination={destinationCoordinates}
+                  apikey={google_api_key} // insert your API Key here
+                  strokeWidth={4}
+                  strokeColor="#111111"
+                />
+              </MapView>
             </View>
 
             <View>

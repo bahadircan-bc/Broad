@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import TripDetailsPage from './screens/TripDetailsPage';
 import TripsPage from './screens/TripsPage';
 import { resetStackStates } from '../../../../util/utils';
+import EditTripPage from './screens/EditTripPage';
 
 
 const TripsStack = createStackNavigator();
@@ -33,6 +34,18 @@ export default function TripsStackPage({navigation}) {
         headerTitleStyle: {
           fontWeight: 'bold',
         }}}/>
+        <TripsStack.Screen name='EditTrip' component={EditTripPage} options={{
+        headerShown:true, 
+        headerTitle:'Yolculuğu düzenle', 
+        headerBackTitleVisible:false,
+        headerStyle: {
+          backgroundColor: '#2DBDFF',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        }}}/>
     </TripsStack.Navigator>
   );
 }
+

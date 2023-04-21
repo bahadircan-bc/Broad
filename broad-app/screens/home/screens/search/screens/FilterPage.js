@@ -8,8 +8,6 @@ import { turkeyCities } from '../../../../../util/utils'
 
 const allCities = []
 
-
-
 export default function FilterPage({navigation, route}) {
   const [seatCount, setSeatCount] = useState(0)
   const [date, setDate] = useState(new Date());

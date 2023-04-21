@@ -44,7 +44,9 @@ export default function TripDetailsPage({navigation, route}) {
     setTripDetails({
       username: response.driver.profile_name,
       imageURL: response.driver.profile_picture,
+      departure: route.params.departure,
       departureCoordinates: response.departure_coordinates,
+      destination: route.params.destination,
       destinationCoordinates: response.destination_coordinates,
       tripNote: response.note,
       date: response.departure_date,
@@ -87,7 +89,17 @@ export default function TripDetailsPage({navigation, route}) {
                   <FontAwesome name='ellipsis-v' size={24} color={colors.white} style={styles.settingsIcon}/>
                 </MenuTrigger>
                 <MenuOptions customStyles={styles.popupMenu}>
-                  <MenuOption text='Düzenle'/>
+                  <MenuOption text='Düzenle' onSelect={() => {navigation.navigate('EditTrip', {
+                    pk:route.params.pk, 
+                    destination:route.params.destination,
+                    departure:route.params.departure,
+                    tripNote: response.note,
+                    date: response.departure_date,
+                    time: response.departure_time,
+                    fee: response.fee,
+                    maxSeats: response.max_seats,
+                    carModel: response.car_model,
+                  })}}/>
                   <MenuOption text={response.is_hidden ? 'Göster' : 'Gizle'} onSelect={()=>{onHideTrip(response.is_hidden)}}/>
                   <MenuOption text='Yayından Kaldır' onSelect={onRemoveTrip}/>
                 </MenuOptions>

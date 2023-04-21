@@ -153,7 +153,7 @@ class TripViewSet(viewsets.ModelViewSet):
     API endpoint that allows trips to be viewed or edited.
     """
     def get_queryset(self):
-        return Trip.objects.exclude(Q(driver=self.request.user.profile) | Q(terminated=True) | Q(passengers=self.request.user.profile))
+        return Trip.objects.exclude(Q(driver=self.request.user.profile) | Q(terminated=True) | Q(passengers=self.request.user.profile) | Q(is_hidden=True))
     serializer_class = TripSerializer
     permission_classes = [permissions.IsAuthenticated]
 

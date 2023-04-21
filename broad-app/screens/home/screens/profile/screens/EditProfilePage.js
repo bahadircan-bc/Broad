@@ -59,7 +59,7 @@ export default function EditProfilePage({navigation, route}) {
         'email': email
       }}))
     await renewCSRFToken();
-    let response = await fetch(`${api_endpoint}profiles/update/`, {
+    let response = await fetch(`${api_endpoint}profiles/update/${pk}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: {

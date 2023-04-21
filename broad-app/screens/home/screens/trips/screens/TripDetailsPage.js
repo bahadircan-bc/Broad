@@ -78,9 +78,26 @@ export default function TripDetailsPage({navigation, route}) {
         animated: true,
       });
     }
+
+    if('active_trips'.localeCompare(route.params.flatlistIdentifier) != 0) return;
+          navigation.setOptions({
+            headerRight: () => (
+              <Menu style={styles.menuContainer}>
+                <MenuTrigger>
+                  <FontAwesome name='ellipsis-v' size={24} color={colors.white} style={styles.settingsIcon}/>
+                </MenuTrigger>
+                <MenuOptions customStyles={styles.popupMenu}>
+                  <MenuOption text='Düzenle'/>
+                  <MenuOption text={response.is_hidden ? 'Göster' : 'Gizle'} onSelect={()=>{onHideTrip(response.is_hidden)}}/>
+                  <MenuOption text='Yayından Kaldır' onSelect={onRemoveTrip}/>
+                </MenuOptions>
+              </Menu>
+            ),
+           })
   }
 
-  const onHideTrip = () => {
+  const onHideTrip = (isHidden) => {
+    console.log(JSON.stringify(tripDetails))
     Alert.alert('Emin misiniz?', (tripDetails.isHidden ? 'Yolculuğunuz gösterilecektir.' : 'Yolculuğunuz gizelenecektir.'), [
       {
         text: 'Vazgeç',
@@ -96,7 +113,7 @@ export default function TripDetailsPage({navigation, route}) {
             'Content-Type' : 'application/json',
           },
           body: JSON.stringify({
-            'is_hidden': tripDetails.isHidden ? 'false' : 'true',  
+            'is_hidden': isHidden ? 'false' : 'true',  
           })
         })
         .then(response => {if(response.status == 200 || response.status == 204) return; else throw new Error(`HTTP status ${response.status}`)});
@@ -129,33 +146,13 @@ export default function TripDetailsPage({navigation, route}) {
     
 
   useEffect(()=>{
-    console.log(route.params)
-    
     try {
       (async () => {
         await fetchItems();
-        if('active_trips'.localeCompare(route.params.flatlistIdentifier) != 0) return;
-          navigation.setOptions({
-            headerRight: () => (
-              <Menu style={styles.menuContainer}>
-                <MenuTrigger>
-                  <FontAwesome name='ellipsis-v' size={24} color={colors.white} style={styles.settingsIcon}/>
-                </MenuTrigger>
-                <MenuOptions customStyles={styles.popupMenu}>
-                  <MenuOption text='Düzenle'/>
-                  <MenuOption text={tripDetails.isHidden ? 'Göster' : 'Gizle'} onSelect={onHideTrip}/>
-                  <MenuOption text='Yayından Kaldır' onSelect={onRemoveTrip}/>
-                </MenuOptions>
-              </Menu>
-            ),
-           })
       })();
     } catch (error) {
       console.log(error);
     }
-
-    
-        
   }, [])
 
   return (

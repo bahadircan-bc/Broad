@@ -4,27 +4,24 @@ import AutoComplete from 'react-native-autocomplete-input'
 import { FontAwesome } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { turkeyCities } from '../../../../../util/utils'
+import { api_endpoint, csrftoken, renewCSRFToken, turkeyCities } from '../../../../../util/utils'
 
 const allCities = []
 
-export default function FilterPage({navigation, route}) {
+export default function EditTripPage({navigation, route}) {
+
+  const [pk, setPk] = useState(route.params.pk);
+  const [destination, setDestination] = useState(route.params.destination);
+  const [destinationCoordinates, setDestinationCoordinates] = useState(route.params.destinationCoordinates);
+  const [departure, setDeparture] = useState(route.params.departure);
+  const [departureCoordinates, setDepartureCoordinates] = useState(route.params.departureCoordinates);
+  const [tripNote, setTripNote] = useState(route.params.note);
+  const [maxSeats, setMaxSeats] = useState(route.params.maxSeats);
+  const [carModel, setCarModel] = useState(route.params.carModel);
   const [seatCount, setSeatCount] = useState(route.params.maxSeats);
   const [fee, setFee] = useState(route.params.fee);
-  const [date, setDate] = useState(new Date(route.params.date));
-  const [time, setTime] = useState();
+  const [date, setDate] = useState(new Date(`${route.params.date}T${route.params.time}`));
   const [showDate, setShowDate] = useState(false);
-
-  console.log(route.params)
-  const tripDetails = {
-    pk:route.params.pk, 
-    destination:route.params.destination,
-    departure:route.params.departure,
-    tripNote: route.params.note,
-    time: route.params.time.substring(0,5),
-    maxSeats: route.params.maxSeats,
-    carModel: route.params.carModel,
-  }
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
@@ -66,12 +63,37 @@ export default function FilterPage({navigation, route}) {
     [queriedCities_2, city_2]
   );
 
+  const onRequestChange = async() => {
+    console.log('change requested');
+    await renewCSRFToken()
+    await fetch(`${api_endpoint}trips/update/${pk}`, {
+        method: 'PATCH',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'departure': departure,
+            'departure_coordinates': departureCoordinates,
+            'destination': destination,
+            'destination_coordinates': destinationCoordinates,
+            'fee': fee,
+            'departure_date': date.toISOString().slice(0, 10),
+            'departure_time': date.toTimeString().substring(0,5),
+            'car_model': carModel,
+            'empty_seats': seatCount,
+            'max_seats': seatCount,
+            'note': tripNote,
+        })
+    })
+  }
+
   return (  
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>
         <Pressable style={styles.foregroundContainer} onPress={()=>Keyboard.dismiss()}>
-          <View style={[styles.formContainer, {zIndex:2}]}><Text>Başlangıç Şehri: </Text><TouchableOpacity style={styles.formInput}><Text>{tripDetails.departure}</Text></TouchableOpacity></View>
-          <View style={[styles.formContainer, {zIndex:1}]}><Text>Varış Şehri: </Text><TouchableOpacity style={styles.formInput}><Text>{tripDetails.destination}</Text></TouchableOpacity></View>
+          <View style={[styles.formContainer, {zIndex:2}]}><Text>Başlangıç Şehri: </Text><TouchableOpacity style={styles.formInput}><Text>{departure}</Text></TouchableOpacity></View>
+          <View style={[styles.formContainer, {zIndex:1}]}><Text>Varış Şehri: </Text><TouchableOpacity style={styles.formInput}><Text>{destination}</Text></TouchableOpacity></View>
           <View style={styles.formContainer}>
             <Text>Ücret: </Text>
             <View style={styles.numericUpDownContainer}>
@@ -114,7 +136,7 @@ export default function FilterPage({navigation, route}) {
             <View style={{justifyContent:'center', alignItems:'flex-start', marginLeft:'auto'}}>
                     <DateTimePicker
                       testID="dateTimePicker"
-                      value={time}
+                      value={date}
                       mode={'time'}
                       is24Hour={true}
                       onChange={onChange}
@@ -124,7 +146,7 @@ export default function FilterPage({navigation, route}) {
             </View>
           <View style={styles.buttonsContainer}>
             <TouchableOpacity style={styles.buttons} onPress={()=>navigation.goBack()}><Text style={styles.buttonText}>Vazgeç</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.buttons} onPress={()=>navigation.goBack()}><Text style={styles.buttonText}>Onayla</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.buttons} onPress={()=>{navigation.goBack(); onRequestChange();}}><Text style={styles.buttonText}>Onayla</Text></TouchableOpacity>
           </View>
           <View style={styles.fillBottom}></View>
         </Pressable>

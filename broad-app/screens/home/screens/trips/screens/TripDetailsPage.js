@@ -92,7 +92,9 @@ export default function TripDetailsPage({navigation, route}) {
                   <MenuOption text='Düzenle' onSelect={() => {navigation.navigate('EditTrip', {
                     pk:route.params.pk, 
                     destination:route.params.destination,
+                    destinationCoordinates: response.destination_coordinates,
                     departure:route.params.departure,
+                    departureCoordinates: response.departure_coordinates,
                     tripNote: response.note,
                     date: response.departure_date,
                     time: response.departure_time,

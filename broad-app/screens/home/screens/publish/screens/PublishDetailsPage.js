@@ -43,6 +43,7 @@ export default function PublishDetailsPage({navigation, route}) {
   }, [])
 
   const onPublishRequest= async function(){
+    console.log(time);
     await renewCSRFToken();
     const response = await fetch(`${api_endpoint}trips/create/`, {
       method: 'POST',

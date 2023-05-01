@@ -19,10 +19,11 @@ export default function PublishDetailsPage({navigation, route}) {
   const departureCoordinates = route.params.departureCoordinates;
   const destination = route.params.destination;
   const destinationCoordinates = route.params.destinationCoordinates;
-  const maxFee = route.params.fee ?? 100;
   const date = route.params.date;
   const time = route.params.time;
   const mapRef = useRef(null);
+
+  const [distanceInKilometers, setDistanceInKilometers] = useState(0);
 
   const queriedCarModels = React.useMemo(
     () => carModelsList.filter((item) =>
@@ -122,6 +123,7 @@ export default function PublishDetailsPage({navigation, route}) {
                   apikey={google_api_key} // insert your API Key here
                   strokeWidth={4}
                   strokeColor="#111111"
+                  onReady={(results)=>{setDistanceInKilometers(results.distance); console.log(results.distance)}}
                 />
               </MapView>
             </View>
@@ -142,12 +144,12 @@ export default function PublishDetailsPage({navigation, route}) {
             <View>
               <Text>Ücret:</Text>
               <View style={{alignItems:'center', alignSelf:'flex-start'}}>
-                <Text>{fee.toFixed(1)}</Text>
+                <TextInput>{fee.toFixed(1)}</TextInput>
                 <Slider
                   style={{width: 200, height: 40}}
                   value={fee}
-                  minimumValue={maxFee * 0}
-                  maximumValue={maxFee * 1}
+                  minimumValue={distanceInKilometers * 0.5 * 0}
+                  maximumValue={distanceInKilometers * 0.5 * 1}
                   step={0.5}
                   minimumTrackTintColor={colors.blue}
                   maximumTrackTintColor="#000000"

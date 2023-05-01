@@ -227,3 +227,5 @@ const styles = StyleSheet.create({
     flex:1,
   },
 })
+
+//TODO Need to implement the filtering logic to backend

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, Pressable, TextInput, Keyboard } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
-import { api_endpoint, csrftoken, renewCSRFToken } from '../../../util/utils';
+import { api_endpoint, csrftoken, getMyObject, renewCSRFToken, setObjectValue } from '../../../util/utils';
 
 
 
@@ -40,6 +40,16 @@ export default function SignInPage({navigation}) {
       setButtonDisabled(false);
       if(response.status == 200){
         navigation.replace('Home');
+        getMyObject(`${username}_chats`).then((data) =>{
+            if(data == null){
+              console.log('no chats in storage creating one');
+              setObjectValue(`${username}_chats`, {});
+            }
+            else{
+              console.log('chats found in storage');
+              console.log(data);
+            }
+        })
       }
       else{
         setShowLoginError(true);

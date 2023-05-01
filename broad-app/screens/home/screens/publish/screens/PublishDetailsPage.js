@@ -44,6 +44,7 @@ export default function PublishDetailsPage({navigation, route}) {
   }, [])
 
   const onPublishRequest= async function(){
+    //TODO Needs to check if all required fields has been initialized
     console.log(time);
     await renewCSRFToken();
     const response = await fetch(`${api_endpoint}trips/create/`, {
@@ -84,6 +85,7 @@ export default function PublishDetailsPage({navigation, route}) {
     }
   }, []);
 
+  //TODO Need to redesign the UI
   return (
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>

@@ -1,4 +1,5 @@
 import { CommonActions, StackActions } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const google_api_key = 'AIzaSyDEcBXKRUuR8cnXmiMAjTSolIUaEIAdols'
 
@@ -50,6 +51,29 @@ export function validateEmail(email) {
         delete element['state'];
       })
     });
+  }
+
+  export async function getMyObject(key){
+    try {
+      const jsonValue = await AsyncStorage.getItem(`@${key}`)
+      // console.log(`jsonValue inside getMyObject: ${jsonValue}`)
+      return jsonValue != null ? JSON.parse(jsonValue) : null
+    } catch(e) {
+      console.log(`some error occured: ${e}`)
+    }
+    console.log('Get Done.')
+  }
+  
+  export async function setObjectValue(key, value) {
+    try {
+      const jsonValue = JSON.stringify(value)
+      // console.log(`jsonValue inside setObjectValue: ${jsonValue}`)
+      await AsyncStorage.setItem(`@${key}`, jsonValue)
+    } catch(e) {
+      console.log(e);
+    }
+  
+    console.log('Set Done.')
   }
 
   export const turkeyCities = [

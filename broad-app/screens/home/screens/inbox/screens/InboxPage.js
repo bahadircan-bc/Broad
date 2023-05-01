@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { FontAwesome } from '@expo/vector-icons';
 import { FlatList } from 'react-native-gesture-handler';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { api_endpoint, getMyObject } from '../../../../../util/utils';
 
 const InboxItem = function({imageURL, name, lastMessage}) {
   const navigation = useNavigation();
@@ -24,50 +25,46 @@ export default function InboxPage({navigation}) {
   const isFocused = useIsFocused();
 
   const fetchItems = async function () {
-    setConversationList([
-      {
-        imageURL: 'https://placeimg.com/640/480/any',
-        name: 'testName',
-        lastMessage: 'testLastMessage',
-      },
-      {
-        imageURL: 'https://placeimg.com/640/480/any',
-        name: 'testName2',
-        lastMessage: 'testLastMessage2',
-      },
-      {
-        imageURL: 'https://placeimg.com/640/480/any',
-        name: 'testName3',
-        lastMessage: 'testLastMessage2',
-      },
-    ])
-    // var storedData = await getMyObject(`${loggedInUsername}_chats`);
-    // var newConversationList = [];
-    // for (var k in storedData) {
-    //   //getProfilePicture(k).then((profilePicture)=>{
-    //   //  var newConversationList = conversationList;
-    //   //  newConversationList.push(<InboxItem key={k} image={{uri:`${ENDPOINT}/media/${profilePicture}`}} name={k} lastMessage={storedData[k][storedData[k].length-1] ? storedData[k][storedData[k].length-1]['text'] : ' '}/>)
-    //   //  setConversationList(newConversationList);
-    //   //})
-    //   var profilePicture = await instance.post(
-    //     `/user/get_profile_picture/`, 
-    //     {data: {'username': k}})
-    //     .then((response) => {  
-    //       return response.data
-    //     })
-    //   newConversationList.push(<InboxItem key={k} image={{uri:`${ENDPOINT}/media/${profilePicture}`}} name={k} lastMessage={storedData[k][storedData[k].length-1] ? storedData[k][storedData[k].length-1]['text'] : ' '}/>)
-    // }
-    // setConversationList(newConversationList);
+    let response = await fetch(`${api_endpoint}whoami/`, {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json",
+        }
+      })
+      .then(response => {if(response.status == 200) return response.json(); else throw new Error(`HTTP status: ${response.status}`);})
+      console.log(`response is : ${JSON.stringify(response)}`);
+      const results = response.results[0];
+
+    var storedData = await getMyObject(`${results.user}_chats`);
+    var newConversationList = [];
+    for (var k in storedData) {
+        let response = await fetch(`${api_endpoint}users/${k}`, {
+            method: 'GET',
+            headers: {
+              "Content-Type": "application/json",
+            }
+          })
+          .then(response => {if(response.status == 200) return response.json(); else throw new Error(`HTTP status: ${response.status}`);})
+        const results = response.results[0];
+        newConversationList.push({
+            "pk": 1,
+            "imageURL": results.profile.profile_picture,
+            "name": results.profile_name,
+            "lastMessage": storedData[k][storedData[k].length-1] ? storedData[k][storedData[k].length-1]['text'] : ' ',
+        })
+    }
+    setConversationList(newConversationList);
   }
 
   useEffect(()=>{
+    if(!isFocused) return;
     try{
       fetchItems()
     } catch(error)
     {
       console.log(error)
     }
-  }, [])
+  }, [isFocused])
 
   const renderItem = function({item}) {
     return (

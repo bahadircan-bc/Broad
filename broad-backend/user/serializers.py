@@ -11,12 +11,6 @@ class UserCreationSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ['name', 'surname', 'username', 'password1', 'password2', 'email']
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups', 'profile']
-
-
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
@@ -35,6 +29,7 @@ class ReviewSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['pk', 'author', 'receiver', 'content', 'rating', 'date']
 
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.StringRelatedField(source='user.username')
     email = serializers.StringRelatedField(source='user.email')
     trips_as_driver = serializers.HyperlinkedRelatedField(
         view_name='trips-detail',
@@ -56,6 +51,11 @@ class ProfileSerializer(serializers.HyperlinkedModelSerializer):
         model = Profile
         fields = ['pk', 'user', 'email', 'profile_name', 'name', 'surname', 'profile_picture', 'trips_as_driver', 'trips_as_passenger', 'followers', 'following', 'reviews', 'written_reviews', 'average_rating']
 
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    profile = ProfileSerializer()
+    class Meta:
+        model = User
+        fields = ['url', 'username', 'email', 'groups', 'profile']
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
     passengers = ProfileSerializer(required=False, many=True)

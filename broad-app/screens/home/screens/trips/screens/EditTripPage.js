@@ -88,12 +88,38 @@ export default function EditTripPage({navigation, route}) {
     })
   }
 
+  useEffect(()=>{
+    try{
+      if (route.params?.mode === 'clear')
+      {
+        setDepartureCoordinates();
+        setDeparture();
+        setDestinationCoordinates();
+        setDestination();
+      }
+      if (route.params?.mode === 'departure') 
+      {
+        setDepartureCoordinates(route.params.coordinates);
+        setDeparture(route.params.address);
+      }
+      if (route.params?.mode === 'destination')
+      {
+        setDestinationCoordinates(route.params.coordinates);
+        setDestination(route.params.address);
+      } 
+  } catch(error)
+  {
+    console.log(error)
+    console.log(route.params)
+  }
+}, [route.params])
+
   return (  
     <KeyboardAvoidingView style={styles.backgroundContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <SafeAreaView style={styles.safeContainer}>
         <Pressable style={styles.foregroundContainer} onPress={()=>Keyboard.dismiss()}>
-          <View style={[styles.formContainer, {zIndex:2}]}><Text>Başlangıç Şehri: </Text><TouchableOpacity style={styles.formInput}><Text>{departure}</Text></TouchableOpacity></View>
-          <View style={[styles.formContainer, {zIndex:1}]}><Text>Varış Şehri: </Text><TouchableOpacity style={styles.formInput}><Text>{destination}</Text></TouchableOpacity></View>
+          <View style={[styles.formContainer, {zIndex:2}]}><Text>Başlangıç Şehri: </Text><TouchableOpacity style={styles.formInput} onPress={()=>navigation.navigate('Map', {mode:'departure'})}><Text>{departure}</Text></TouchableOpacity></View>
+          <View style={[styles.formContainer, {zIndex:1}]}><Text>Varış Şehri: </Text><TouchableOpacity style={styles.formInput} onPress={()=>navigation.navigate('Map', {mode:'destination'})}><Text>{destination}</Text></TouchableOpacity></View>
           <View style={styles.formContainer}>
             <Text>Ücret: </Text>
             <View style={styles.numericUpDownContainer}>
@@ -146,7 +172,7 @@ export default function EditTripPage({navigation, route}) {
             </View>
           <View style={styles.buttonsContainer}>
             <TouchableOpacity style={styles.buttons} onPress={()=>navigation.goBack()}><Text style={styles.buttonText}>Vazgeç</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.buttons} onPress={()=>{navigation.goBack(); onRequestChange();}}><Text style={styles.buttonText}>Onayla</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.buttons} onPress={async()=>{await onRequestChange(); navigation.goBack();}}><Text style={styles.buttonText}>Onayla</Text></TouchableOpacity>
           </View>
           <View style={styles.fillBottom}></View>
         </Pressable>

@@ -9,6 +9,7 @@ import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-m
 
 import { api_endpoint, csrftoken, formatDate, google_api_key, renewCSRFToken } from '../../../../../util/utils';
 import MapViewDirections from 'react-native-maps-directions';
+import { useIsFocused } from '@react-navigation/native';
 
 const PassengerCard = (props) => {
   return (
@@ -32,6 +33,9 @@ export default function TripDetailsPage({navigation, route}) {
   const expandButtonOpacity = useRef(new Animated.Value(0)).current;
 
   const mapRef = useRef(null);
+
+  const isFocused = useIsFocused();
+
   const fetchItems = async function (){
     let response = await fetch(`${api_endpoint}${route.params.flatlistIdentifier}/${route.params.pk}/`, {
       method: 'GET',
@@ -44,9 +48,9 @@ export default function TripDetailsPage({navigation, route}) {
     setTripDetails({
       username: response.driver.profile_name,
       imageURL: response.driver.profile_picture,
-      departure: route.params.departure,
+      departure: response.departure,
       departureCoordinates: response.departure_coordinates,
-      destination: route.params.destination,
+      destination: response.destination,
       destinationCoordinates: response.destination_coordinates,
       tripNote: response.note,
       date: response.departure_date,
@@ -91,9 +95,9 @@ export default function TripDetailsPage({navigation, route}) {
                 <MenuOptions customStyles={styles.popupMenu}>
                   <MenuOption text='Düzenle' onSelect={() => {navigation.navigate('EditTrip', {
                     pk:route.params.pk, 
-                    destination:route.params.destination,
+                    destination:response.destination,
                     destinationCoordinates: response.destination_coordinates,
-                    departure:route.params.departure,
+                    departure:response.departure,
                     departureCoordinates: response.departure_coordinates,
                     tripNote: response.note,
                     date: response.departure_date,
@@ -160,6 +164,7 @@ export default function TripDetailsPage({navigation, route}) {
     
 
   useEffect(()=>{
+    if(!isFocused) return;
     try {
       (async () => {
         await fetchItems();
@@ -167,7 +172,7 @@ export default function TripDetailsPage({navigation, route}) {
     } catch (error) {
       console.log(error);
     }
-  }, [])
+  }, [isFocused])
 
   return (
     <View style={styles.backgroundContainer}>

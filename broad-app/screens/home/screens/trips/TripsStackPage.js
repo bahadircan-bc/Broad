@@ -5,6 +5,7 @@ import TripDetailsPage from './screens/TripDetailsPage';
 import TripsPage from './screens/TripsPage';
 import { resetStackStates } from '../../../../util/utils';
 import EditTripPage from './screens/EditTripPage';
+import MapPage from './screens/MapPage';
 
 
 const TripsStack = createStackNavigator();
@@ -23,6 +24,7 @@ export default function TripsStackPage({navigation}) {
   return (
     <TripsStack.Navigator screenOptions={{headerShown: false}}>
       <TripsStack.Screen name='Trips' component={TripsPage} />
+      <TripsStack.Screen name='Map' component={MapPage} />
       <TripsStack.Screen name='TripDetails' component={TripDetailsPage} options={{
         headerShown:true, 
         headerTitle:'Yolculuk Bilgileri', 

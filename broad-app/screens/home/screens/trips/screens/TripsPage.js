@@ -26,7 +26,7 @@ const TripsItem = function({flatlistIdentifier, pk, name, ownTrip, departure, de
       onPress={() => {navigation.navigate('TripDetails', {flatlistIdentifier:flatlistIdentifier, pk:pk, name:name, ownTrip:ownTrip, departure:departure, destination:destination, onGoing:onGoing})}}>
       <FontAwesome name='road' color={colors.blue} size={16} style={{margin:8}}/>
       <Text style={{fontSize:16}}>{departure} - {destination}</Text>
-      {onGoing && <Animated.View style={{borderRadius:5, padding:5, position:'absolute', right:10, backgroundColor:colors.green, opacity:activeTextOpacity}}>
+      {!(flatlistIdentifier==='past_trips') && onGoing && <Animated.View style={{borderRadius:5, padding:5, position:'absolute', right:10, backgroundColor:colors.green, opacity:activeTextOpacity}}>
         <Text style={{color:colors.white}}>BAŞLADI</Text>
       </Animated.View>}
       {isHidden && <Animated.View style={{borderRadius:5, padding:5, position:'absolute', right:10, backgroundColor:'#d9d9d9', opacity:activeTextOpacity}}>

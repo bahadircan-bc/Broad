@@ -4,7 +4,7 @@ from user.models import Profile, Trip, Review
 from django.db.models import Q, Avg
 from rest_framework import viewsets, views
 from rest_framework import permissions
-from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer, CreateTripSerializer, HideTripSerializer
+from user.serializers import UserSerializer, GroupSerializer, ProfileSerializer, TripSerializer, ReviewSerializer, UserCreationSerializer, ChangePasswordSerializer, CreateTripSerializer, HideTripSerializer, TerminateTripSerializer
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -14,6 +14,8 @@ from rest_framework import authentication
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.core.mail import send_mail
+from django.utils import timezone
+
 import random
 
 class LogInView(views.APIView):
@@ -175,7 +177,7 @@ class RegisteredTripViewSet(viewsets.ModelViewSet):
     queryset=Trip.objects.all()
     def get_queryset(self):
         profile = self.request.user.profile
-        return Trip.objects.filter(Q(passengers=profile) & Q(terminated=False))
+        return Trip.objects.filter(Q(passengers=profile) & Q(terminated=False)).exclude(Q(terminated_passengers=profile))
     serializer_class = TripSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -186,7 +188,7 @@ class PastTripViewSet(viewsets.ModelViewSet):
     queryset=Trip.objects.all()
     def get_queryset(self):
         profile = self.request.user.profile
-        return Trip.objects.filter((Q(passengers=profile) | Q(driver=profile)) & Q(terminated=True))
+        return Trip.objects.filter((Q(passengers=profile) | Q(driver=profile))).filter(Q(terminated=True) | Q(terminated_passengers=profile))
     serializer_class = TripSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -212,13 +214,38 @@ class HideTripView(generics.UpdateAPIView):
         return Trip.objects.filter(driver=self.request.user.profile)
         
 class DeleteTripView(generics.DestroyAPIView):
-    serializer_class = HideTripSerializer
+    serializer_class = TripSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         profile = self.request.user.profile
         return Trip.objects.filter(driver=profile)
     
+class TerminateTripView(generics.UpdateAPIView):
+    serializer_class = TerminateTripSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    def get_queryset(self):
+        profile = self.request.user.profile
+        return Trip.objects.filter((Q(driver=profile) | Q(passengers=profile)) & Q(on_going = True)).exclude(Q(terminated=True) | Q(terminated_passengers = profile))
+    def update(self, request, *args, **kwargs):
+        trip = self.get_object()
+        user_profile = request.user.profile
+        
+        print(request.data)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        review = serializer.validated_data['review']
+        rating = serializer.validated_data['rating']
+
+        new_review = Review.objects.create(author= user_profile,receiver=trip.driver, content=review, rating=rating, date=timezone.now())
+        new_review.save()
+
+        trip.terminated_passengers.add(user_profile)
+        trip.save()
+
+        return Response({'message': 'Trip terminated successfully.'})
+
+
 class ReviewViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows reviews to be viewed or edited.

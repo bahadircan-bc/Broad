@@ -57,13 +57,22 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ['url', 'username', 'email', 'groups', 'profile']
 
+class PassengerSerializer(serializers.HyperlinkedModelSerializer):
+    def get_average_rating(self, obj):
+        return obj.average_rating
+
+    class Meta:
+        model = Profile
+        fields = ['pk', 'profile_name', 'profile_picture', 'average_rating']
+
 class TripSerializer(serializers.HyperlinkedModelSerializer):
-    passengers = ProfileSerializer(required=False, many=True)
+    passengers = PassengerSerializer(required=False, many=True)
+    terminated_passengers = PassengerSerializer(required=False, many=True)
     driver = ProfileSerializer(required=False)
 
     class Meta:
         model = Trip
-        fields = ['pk', 'driver', 'passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated', 'is_hidden']
+        fields = ['pk', 'driver', 'passengers', 'terminated_passengers', 'departure', 'departure_coordinates', 'destination', 'destination_coordinates', 'fee', 'departure_date', 'departure_time','car_model', 'empty_seats', 'max_seats', 'note', 'on_going', 'terminated', 'is_hidden']
 
 class HideTripSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -96,3 +105,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data['new_password'])
         user.save()
         return user
+    
+class TerminateTripSerializer(serializers.Serializer):
+    review = serializers.CharField(max_length=255)
+    rating = serializers.IntegerField()

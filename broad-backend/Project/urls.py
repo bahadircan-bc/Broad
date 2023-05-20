@@ -47,6 +47,7 @@ urlpatterns = [
     path('trips/update/<int:pk>', views.UpdateTripView.as_view(),  name='update_trip'),
     path('trips/delete/<int:pk>', views.DeleteTripView.as_view(),  name='delete_trip'),
     path('trips/hide/<int:pk>', views.HideTripView.as_view(), name='hide_trip'),
+    path('trips/terminate/<int:pk>', views.TerminateTripView.as_view(), name='terminate_trip'),
     path('reviews/create/', views.CreateReviewView.as_view(), name='create_review'),
     path('reviews/update/<int:pk>', views.UpdateReviewView.as_view(),  name='update_review'),
     path('reviews/delete/<int:pk>', views.DeleteReviewView.as_view(),  name='delete_review'),

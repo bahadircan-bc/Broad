@@ -41,6 +41,7 @@ class Review(models.Model):
 class Trip(models.Model):
     driver = models.ForeignKey(Profile, on_delete=models.SET_NULL, related_name='trips_as_driver', null=True)
     passengers = models.ManyToManyField(Profile, related_name='trips_as_passenger', blank=True)
+    terminated_passengers= models.ManyToManyField(Profile, related_name='terminated_trips_as_passenger', blank=True)
     departure = models.CharField(max_length=100)
     departure_coordinates = models.JSONField()
     destination = models.CharField(max_length=100)

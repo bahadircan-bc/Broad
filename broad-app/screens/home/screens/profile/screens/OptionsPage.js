@@ -34,7 +34,7 @@ export default function OptionsPage({navigation}) {
             onPress={()=>{
               setObjectValue(`${loggedInUsername}_chats`, {});
             }}/>
-            <SettingsMenuItem menuText='Bunu yap'/>
+            {/* <SettingsMenuItem menuText='Bunu yap'/> */}
             <SettingsMenuItem menuText='Şifreyi Değiştir' onPress={()=>navigation.navigate('EditPassword')}/>
             <SettingsMenuItem menuText='Oturumu kapat' onPress={async ()=>{
               await renewCSRFToken(); 

@@ -6,6 +6,7 @@ import TripsPage from './screens/TripsPage';
 import { resetStackStates } from '../../../../util/utils';
 import EditTripPage from './screens/EditTripPage';
 import MapPage from './screens/MapPage';
+import EndTripPage from './screens/EndTripPage';
 
 
 const TripsStack = createStackNavigator();
@@ -39,6 +40,17 @@ export default function TripsStackPage({navigation}) {
         <TripsStack.Screen name='EditTrip' component={EditTripPage} options={{
         headerShown:true, 
         headerTitle:'Yolculuğu düzenle', 
+        headerBackTitleVisible:false,
+        headerStyle: {
+          backgroundColor: '#2DBDFF',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        }}}/>
+        <TripsStack.Screen name='EndTrip' component={EndTripPage} options={{
+        headerShown:true, 
+        headerTitle:'Yolculuğu bitir', 
         headerBackTitleVisible:false,
         headerStyle: {
           backgroundColor: '#2DBDFF',
